@@ -28,6 +28,11 @@ services:
       POSTGRES_USER: nocobase
       POSTGRES_PASSWORD: nocobase
       POSTGRES_DB: nocobase
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U nocobase -d nocobase']
+      interval: 5s
+      timeout: 5s
+      retries: 20
     volumes:
       # Keeps the database's data on your computer, in a "storage" folder
       # next to this compose.yml, so your data survives container restarts.
@@ -44,12 +49,14 @@ services:
     container_name: nocobase-app
     restart: always
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
       # A random secret NocoBase uses to encrypt things like login
       # tokens. It can be any long random string. Already generated
       # for you below - you don't need to change it.
       - APP_KEY=1d542c38a36d5d8768c5de53aa69207f
+      - ENCRYPTION_FIELD_KEY=5adcb2279fb94fc9be4f16e751f9a00a
 
       # Tell NocoBase to use the postgres container above as its database.
       - DB_DIALECT=postgres
@@ -59,6 +66,12 @@ services:
       - DB_USER=nocobase
       - DB_PASSWORD=nocobase
 
+      # These values create the first administrator account only when the
+      # database is empty. Change the password after the first sign-in.
+      - INIT_ROOT_EMAIL=admin@nocobase.local
+      - INIT_ROOT_PASSWORD=admin123
+      - INIT_ROOT_NICKNAME=Administrator
+
       - TZ=America/New_York
     volumes:
       # Keeps uploaded files / plugins on your computer so they survive
@@ -67,7 +80,7 @@ services:
     ports:
       # <host port>:<container port>
       # NocoBase listens on port 80 inside the container; we expose it
-      # on port 13000 on your computer so you can open it in a browser.
-      - '13000:80'
+      # on port 13001 on your computer so you can open it in a browser.
+      - '127.0.0.1:13001:80'
     networks:
       - nocobase
