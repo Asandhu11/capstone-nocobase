@@ -1,3 +1,8 @@
+
+networks:
+  nocobase:
+    driver: bridge
+
 services:
   nocobase-app:
     image: nocobase/nocobase:latest
@@ -9,7 +14,7 @@ services:
       nocobase-db:
         condition: service_healthy
     environment:
-      - APP_KEY=random-secret-key-change-this-in-production
+      - APP_KEY=2EMehVx2q+K5RZkgn5VpTX5PfOxJkbKW5D9DbWFiOdo=
       - DB_DIALECT=postgres
       - DB_HOST=nocobase-db
       - DB_PORT=5432
@@ -18,7 +23,9 @@ services:
       - DB_PASSWORD=nocobase_secure_pass
       - TZ=UTC
     volumes:
-      - nocobase_storage:/app/nocobase/storage
+      # Bind mount: stores application data and files locally on your host machine
+      # Located at: ./data/nocobase-storage
+      - ./data/nocobase-storage:/app/nocobase/storage
 
   nocobase-db:
     image: postgres:15-alpine
@@ -29,13 +36,11 @@ services:
       - POSTGRES_USER=nocobase
       - POSTGRES_PASSWORD=nocobase_secure_pass
     volumes:
-      - nocobase_db_data:/var/lib/postgresql/data
+      # Bind mount: stores database files locally on your host machine
+      # Located at: ./data/postgres-data
+      - ./data/postgres-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U nocobase -d nocobase"]
       interval: 10s
       timeout: 5s
       retries: 5
-
-volumes:
-  nocobase_storage:
-  nocobase_db_data:
