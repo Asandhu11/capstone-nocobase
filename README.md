@@ -1,82 +1,151 @@
-# NocoBase via Docker Compose
+# Clicker Occupancy Prototype
 
-This repository contains a `compose.yml` that starts a fully working [NocoBase](https://github.com/nocobase/nocobase) installation (a low-code / no-code application platform) using Docker Compose. It runs two containers:
+A NocoBase course prototype for venues, entrances, devices, click events,
+occupancy snapshots, alerts, notification subscriptions, and audit records.
+It has three pages and eight collections. It does not yet provide a separate
+page for every collection in the team's 14-collection ERD.
 
-1. **postgres** – the Postgres database that stores all of NocoBase's data
-2. **app** – the NocoBase server and web UI
+## Start from a fresh clone
 
-## Prerequisites
+Install and start Docker Desktop (or Docker Engine with Compose v2 on Linux).
+No local PostgreSQL, Node.js, curl, or jq installation is required.
 
-You need **Docker Desktop** (which includes Docker Compose) installed and running on your computer.
+From the repository root, run:
 
-- Download it from <https://www.docker.com/products/docker-desktop/>
-- Install it, then open the Docker Desktop application and make sure it says it's running before continuing.
-- To confirm it's installed correctly, open a terminal (Terminal on Mac/Linux, PowerShell or Command Prompt on Windows) and run:
+```bash
+docker compose up -d --wait --wait-timeout 600
+```
 
-  ```bash
-  docker --version
-  docker compose version
-  ```
+The first run can take several minutes to download the images. Compose waits
+until the database export has finished restoring, the migrations have run,
+and the application API is ready.
 
-  Both commands should print a version number rather than an error.
+Open <http://localhost:13001> and sign in:
 
-## How to run it
+| Field | Value |
+| --- | --- |
+| Email | `admin@nocobase.com` |
+| Password | `admin123` |
 
-1. Download/clone this repository so that `compose.yml` and `README.md` are in the same folder on your computer.
-2. Open a terminal and navigate into that folder, e.g.:
+These are shared course-demo credentials. Existing installations keep any
+password their administrator has already changed.
 
-   ```bash
-   cd path/to/this-folder
-   ```
+`./scripts/setup-prototype.sh` runs the same startup command if you prefer a
+helper script. No additional manual seeding or folder creation is required.
+The alternate `capstone/compose.yml` starts the same seed on port 13000 and
+keeps its own runtime data under `capstone/storage/`; use one location consistently.
 
-3. Start everything with:
+## What you can do
 
-   ```bash
-   docker compose up
-   ```
+| Page | Tables and actions |
+| --- | --- |
+| Occupancy Dashboard | Venues: Add new, View, Edit. Alerts: View, Edit. |
+| Device Monitor | Devices: View, Edit. |
+| Event Log | Click events: View, Edit. |
 
-   - The first time you run this, Docker will download (pull) the Postgres and NocoBase images from Docker Hub, which can take a few minutes depending on your internet connection. You'll see a lot of log output — that's normal.
-   - If you'd rather run it in the background (so you get your terminal prompt back), use `docker compose up -d` instead. You can then view logs at any time with `docker compose logs -f`.
+Select **View** beside a record for its details, or **Edit** to change its
+fields and select **Submit**. For example, staff can acknowledge or resolve an
+alert, update a device's credential status, or change a venue's capacity.
+The existing venue **Add new** form remains available.
 
-4. Wait for the NocoBase container to finish its first-time setup. You'll know it's ready when the logs stop scrolling and you see messages indicating the app has started (something like `app running at: http://0.0.0.0:80`). This can take a minute or two the first time.
+The sample data includes Harbor Center at 412 of 500 occupants and Eastside
+Fieldhouse at 267 of 800. Device credentials demonstrate valid, expiring, and
+revoked states. Click events include a unique idempotency token and a processed
+flag; automated hardware ingestion and occupancy reconciliation are future work.
 
-5. Open a web browser on your computer and go to:
+## Collections
 
-   ```text
-   http://localhost:13000
-   ```
+| Collection | Purpose |
+| --- | --- |
+| Venues | Capacity, occupancy, address, time zone, status |
+| Entrances | Direction and location within a venue |
+| Devices | Hardware, credentials, activity, last check-in |
+| Click events | Entry, exit, and correction events |
+| Occupancy snapshots | Saved counts for reporting |
+| Alerts | Capacity, offline-device, and count-mismatch warnings |
+| Notification subscriptions | Alert destinations for users and venues |
+| Audit log | Administrative and operational records |
 
-## Logging in
+The collections retain their relationships: venues have entrances, entrances
+have devices, and devices have click events. Alerts and snapshots belong to
+venues, and selected records connect to NocoBase users.
 
-NocoBase automatically creates a default administrator account the first time it starts. Log in with:
+`erd-final-preview.png` and `network-final-preview.png` contain the team's
+reference diagrams. The UI Editor in NocoBase lets administrators extend the
+configured pages; those changes are stored in the database.
 
-| Field    | Value                  |
-| -------- | ---------------------- |
-| Email    | `admin@nocobase.com`   |
-| Password | `admin123`             |
+## Reproducible setup and persistence
 
-**You should change this password** after your first login (Settings → your profile icon → Change password) — it's only meant as a starting point.
+- `seed/prototype.sql` is a portable PostgreSQL export containing the demo
+  records, administrator, collections, relationships, and configured UI.
+- `seed/assets/` contains the logo referenced by the export.
+- PostgreSQL restores the export only when its data directory is empty.
+- `prototype-migrations` updates the original admin email and adds the View/Edit
+  forms to existing copies of this prototype. It exits with code 0 on success.
+  Repeating startup does not duplicate the actions or replace your records.
+- The NocoBase image is pinned to the version tested with the exported UI.
 
-## Stopping the app
+Runtime files are excluded from Git. Docker creates the bind-mounted folders:
 
-- If you ran `docker compose up` in the foreground, press `Ctrl+C` in that terminal.
-- If you ran it with `-d` (detached/background mode), stop it with:
+| Host folder | Container path | Contents |
+| --- | --- | --- |
+| `./storage` | `/app/nocobase/storage` | Uploads, logs, application runtime files |
+| `./storage/db/postgres` | `/var/lib/postgresql/data` | Records, collections, user accounts, page layouts |
 
-  ```bash
-  docker compose down
-  ```
+Stopping or recreating containers keeps these folders and your changes:
 
-Your data is **not** deleted when you stop or run `docker compose down` — it's saved on your computer in a `storage/` folder that gets created next to `compose.yml` (this is set up via Docker "volumes" in `compose.yml`). To completely wipe the data and start fresh, stop the containers and then delete the `storage/` folder.
+```bash
+docker compose down
+docker compose up -d --wait --wait-timeout 600
+```
 
-## How it works (quick overview)
+Do not delete `storage/` to restart the app. A deliberately empty storage
+folder restores the original demo instead of your latest edits.
 
-- `compose.yml` defines two **services**: `postgres` (the database) and `app` (NocoBase itself).
-- The `app` service is told how to reach the database through environment variables (`DB_HOST=postgres`, `DB_USER=nocobase`, etc.) — `postgres` here is just the service name Docker Compose uses as a hostname on the shared internal network defined at the bottom of the file.
-- The `ports` line `'13000:80'` maps port 80 inside the `app` container (where NocoBase listens) to port 13000 on your computer, which is why you visit `http://localhost:13000` in your browser.
-- The `volumes` lines make sure your database and uploaded files are stored in a `storage/` folder on your computer, not just inside the temporary container, so nothing is lost if you stop and restart.
+## Update an older checkout
+
+Back up your existing site first, then pull this branch and run the startup
+command again. The migrations preserve existing records and passwords, rename
+the original `admin@nocobase.local` account to `admin@nocobase.com`, and add the
+new table actions. The PostgreSQL wrapper repairs the empty folders omitted by
+older commits that tracked raw database files.
+
+For a backup that does not require stopping PostgreSQL:
+
+```bash
+docker compose exec -T postgres pg_dump -U nocobase -d nocobase --no-owner --no-acl > backup.sql
+```
+
+Also save your uploaded files and Compose configuration. Keep personal backups
+outside Git. For a complete copy of the raw `storage/` folder, stop the services
+first so the database files are consistent. When updating an old Git checkout,
+keep the backup outside the repository because the update removes formerly
+tracked runtime files.
 
 ## Troubleshooting
 
-- **"port is already allocated" error**: something else on your computer is already using port 13000. Either stop that program, or change the left-hand side of the `ports` mapping in `compose.yml` (e.g. `'14000:80'`) and then visit `http://localhost:14000` instead.
-- **Page won't load yet**: give it another minute — the very first startup runs a database migration and can take a bit longer than later restarts.
-- **Need to reset everything**: run `docker compose down`, delete the `storage/` folder, then `docker compose up` again to start from a clean install.
+Inspect service status and recent logs:
+
+```bash
+docker compose ps -a
+docker compose logs --tail=100 postgres prototype-migrations app
+```
+
+If port 13001 is busy, set `NOCOBASE_PORT` in a local `.env` file, for example:
+
+```dotenv
+NOCOBASE_PORT=13002
+```
+
+Start Compose again and open that port. Fixed container names are not used,
+so separate checkouts can run with distinct Compose project names and ports.
+
+If the site is blank, check that you started from the repository root and that
+PostgreSQL restored `/docker-entrypoint-initdb.d/01-prototype.sql` successfully.
+An existing unrelated or previously blank database is intentionally preserved;
+the initial export is not reapplied over it. Back up that installation and use
+a separate fresh checkout to load the supplied demo.
+
+If login fails, use the email above, check the migration logs, and use your own
+password if you changed it earlier. `INIT_ROOT_*` settings do not reset existing
+passwords.
