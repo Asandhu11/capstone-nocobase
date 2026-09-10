@@ -1,13 +1,45 @@
 name: nocobase
 
 services:
-  app:
-    image: nocobase/nocobase:latest-full
+  postgres:
+    image: postgres:16
+    entrypoint: ["/bin/sh", "/prepare-postgres.sh"]
     restart: unless-stopped
+    command: postgres -c wal_level=logical
+    environment:
+      POSTGRES_USER: nocobase
+      POSTGRES_PASSWORD: nocobase
+      POSTGRES_DB: nocobase
+    healthcheck:
+      # TCP stays unavailable while the first-run SQL snapshot is restoring.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U nocobase -d nocobase"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+    volumes:
+      - ./storage/db/postgres:/var/lib/postgresql/data
+      - ../scripts/prepare-postgres.sh:/prepare-postgres.sh:ro
+      - ../seed/prototype.sql:/docker-entrypoint-initdb.d/01-prototype.sql:ro
+
+  prototype-migrations:
+    image: postgres:16
+    restart: "no"
     depends_on:
       postgres:
         condition: service_healthy
-      admin-email:
+    environment:
+      PGPASSWORD: nocobase
+    volumes:
+      - ../scripts/migrate-admin-email.sql:/migrate-admin-email.sql:ro
+      - ../scripts/migrate-table-actions.sql:/migrate-table-actions.sql:ro
+    command: ["psql", "-h", "postgres", "-U", "nocobase", "-d", "nocobase", "-v", "ON_ERROR_STOP=1", "-f", "/migrate-admin-email.sql", "-f", "/migrate-table-actions.sql"]
+
+  app:
+    # The exported page models were tested with this exact NocoBase image.
+    image: nocobase/nocobase@sha256:df2d3e90eafa9a742163781761beba725f147d5d1ac0f722be03ff0da0cfbec1
+    restart: unless-stopped
+    depends_on:
+      prototype-migrations:
         condition: service_completed_successfully
     environment:
       APP_KEY: "change-this-course-project-app-key-2026"
@@ -18,51 +50,22 @@ services:
       DB_DATABASE: nocobase
       DB_USER: nocobase
       DB_PASSWORD: nocobase
-      TZ: America/New_York
       INIT_ROOT_EMAIL: admin@nocobase.com
       INIT_ROOT_PASSWORD: admin123
       INIT_ROOT_NICKNAME: Administrator
+      TZ: America/New_York
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "require('http').get('http://127.0.0.1/api/pm:listEnabled',r=>{r.resume();process.exit(r.statusCode===200?0:1)}).on('error',()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 60
     volumes:
       - ./storage:/app/nocobase/storage
+      - ../seed/assets/logo-sheoaa.png:/app/nocobase/storage/uploads/logo-sheoaa.png:ro
     ports:
-      - "127.0.0.1:13000:80"
-    networks:
-      - nocobase
-
-  admin-email:
-    image: postgres:16
-    restart: "no"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      PGPASSWORD: nocobase
-    volumes:
-      - ../scripts/migrate-admin-email.sql:/migrate-admin-email.sql:ro
-    command: ["psql", "-h", "postgres", "-U", "nocobase", "-d", "nocobase", "-v", "ON_ERROR_STOP=1", "-f", "/migrate-admin-email.sql"]
-    networks:
-      - nocobase
-
-  postgres:
-    image: postgres:16
-    entrypoint: ["/bin/sh", "/prepare-postgres.sh"]
-    restart: unless-stopped
-    command: postgres -c wal_level=logical
-    environment:
-      POSTGRES_USER: nocobase
-      POSTGRES_DB: nocobase
-      POSTGRES_PASSWORD: nocobase
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U nocobase -d nocobase"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-    volumes:
-      - ./storage/db/postgres:/var/lib/postgresql/data
-      - ../scripts/prepare-postgres.sh:/prepare-postgres.sh:ro
-    networks:
-      - nocobase
-
-networks:
-  nocobase:
-    driver: bridge
+      - "127.0.0.1:${NOCOBASE_PORT:-13000}:80"

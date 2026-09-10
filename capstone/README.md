@@ -1,103 +1,21 @@
-# NocoBase with Docker Compose
+# Alternate Compose entry point
 
-This project uses Docker Compose to run NocoBase with a PostgreSQL database.
-You don't need to install Node.js or PostgreSQL separately.
-
-## Requirements
-
-- Docker Desktop for Windows or macOS, or Docker Engine for Linux
-- Docker Compose v2, which is included with Docker Desktop
-- Port `13000` must be available on the computer
-
-Make sure Docker is running before continuing. You can confirm that Docker
-Compose is available with:
+This starts the same Clicker Occupancy Prototype as the repository root, on
+<http://localhost:13000>. Keep this directory inside the repository so the
+shared `../scripts/` and `../seed/` files are available.
 
 ```bash
-docker compose version
+docker compose up -d --wait --wait-timeout 600
 ```
 
-## Start NocoBase
+Sign in with **admin@nocobase.com** / **admin123**. On first startup, the portable
+export restores the three pages, eight collections, sample data, and View/Edit
+forms automatically. The migration service exits with code 0 after completion.
 
-Keep this folder inside the repository so that the shared `../scripts/`
-directory remains available. Open a terminal in this folder and run:
+This entry point preserves its existing Compose project name (`nocobase`) and
+stores runtime data under `capstone/storage/`. The root entry point uses a
+separate storage folder. Use one consistently to keep working on the same data.
+Runtime data is ignored by Git and survives `docker compose down`.
 
-```bash
-docker compose up -d
-```
-
-The `-d` option runs the containers in the background, so you can continue
-using the terminal while NocoBase is running.
-
-The first startup may take a few minutes because Docker needs to download the
-images and NocoBase needs to set up its database. You can check the container
-status with:
-
-```bash
-docker compose ps
-```
-
-The PostgreSQL service should show as healthy before you try to use NocoBase.
-
-If you want to watch the application logs, run:
-
-```bash
-docker compose logs -f app
-```
-
-Once the application is ready, open this address in a browser:
-
-<http://localhost:13000>
-
-## Login
-
-- Email: `admin@nocobase.com`
-- Password: `admin123`
-
-If you plan to keep or share this installation, change the password after you
-sign in. These login settings only apply when the database is created for the
-first time. The `admin-email` service also updates the original course-project
-administrator in an existing database from `admin@nocobase.local` to
-`admin@nocobase.com`, without changing the password. Its successful exit with
-code `0` is expected.
-
-## Stop or restart NocoBase
-
-To stop the containers without deleting the saved application data, run:
-
-```bash
-docker compose down
-```
-
-To start them again, run:
-
-```bash
-docker compose up -d
-```
-
-To restart the running containers, use:
-
-```bash
-docker compose restart
-```
-
-## Stored data
-
-NocoBase and PostgreSQL save their data in a `storage/` folder, which Docker
-creates automatically the first time the application starts. Running
-`docker compose down` will not delete this data.
-
-For a fresh installation, stop the containers and delete the `storage/` folder
-before starting them again. Deleting this folder permanently removes all
-application and database data, so make a backup first if you need to keep it.
-
-## Troubleshooting
-
-If port `13000` is already being used, update the port mapping in `compose.yml`.
-For example, change `127.0.0.1:13000:80` to `127.0.0.1:13001:80`, then open
-<http://localhost:13001>.
-
-To view recent logs for both services, run:
-
-```bash
-docker compose logs --tail=100 app postgres
-```
+See [the main README](../README.md) for actions, backups, upgrades, and
+troubleshooting. Its commands apply here too; the default port is 13000.
