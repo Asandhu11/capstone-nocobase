@@ -26,27 +26,27 @@ Bind mounts connect local directories on your computer to directories inside Doc
 
 This setup uses:
 - `./data/nocobase-storage` - Stores NocoBase configuration and files
-- `./data/postgres-data` - Stores database records
+- Docker-managed volume `nocobase-db-data` - Stores database records and creates PostgreSQL's required directories automatically
 
 Without bind mounts, all data is lost when containers are deleted.
 
 ## Setup Instructions
 
-### Step 1: Create Data Directories
+### Step 1: Prepare and Start the Prototype
 
-Navigate to the project directory and create folders for persistent data storage:
+Navigate to the project directory and start the services. Compose automatically waits for NocoBase and seeds the prototype collections and sample records:
 
 ```bash
 # On Windows (PowerShell)
 cd "C:\Users\YourUsername\OneDrive\Documents\GitHub\capstone-deliverable1-nocobase\Capstone"
-mkdir -p data/nocobase-storage
-mkdir -p data/postgres-data
+docker compose up -d
 
 # On macOS/Linux
 cd ~/OneDrive/Documents/GitHub/capstone-deliverable1-nocobase/Capstone
-mkdir -p data/nocobase-storage
-mkdir -p data/postgres-data
+docker compose up -d
 ```
+
+The seed service uses NocoBase's built-in Users, Roles, login, and permission system. It does not create a custom password field or store passwords in the prototype collections.
 
 ### Step 2: Start Services
 
@@ -90,14 +90,11 @@ IMPORTANT: Change this password immediately after first login via the user profi
 
 ## Initial Page Setup
 
-On the first login, create these three pages in the NocoBase desktop. These pages are the main sections of the prototype. Page configuration is stored in the bind-mounted application storage, so it remains available after restarting Docker.
+On the first login, the seed service has already created these three pages and placed table blocks for their collections. Page configuration is stored in the bind-mounted application storage, so it remains available after restarting Docker. Users can create, edit, and delete records from the table blocks according to their NocoBase permissions.
 
-1. Open the page or desktop settings from the left navigation.
-2. Create a page named `Core Occupancy`.
-3. Create a page named `Access Control`.
-4. Create a page named `Events & Monitoring`.
-5. Set `Core Occupancy` as the home page.
-6. Save the desktop/navigation configuration.
+1. Open the page or desktop settings from the left navigation to review the generated pages.
+2. Set `Core Occupancy` as the home page if NocoBase has not selected it automatically.
+3. Save any navigation changes.
 
 Add the following collections to each page using a table or grid block:
 
@@ -195,71 +192,13 @@ Sample Data:
 
 ### Phase 2: Access Control
 
-#### Table 4: Roles
+Use NocoBase's built-in Users, Roles, and permissions for authentication and authorization. Do not create a custom Users collection or store passwords in a regular field. Sign in with the administrator account shown above, then create additional users and roles from the NocoBase administration settings.
+
+#### Tables 4-7: Built-in access control
 
 | Field | Type | Settings |
 |-------|------|----------|
-| role_id | Text | Primary Key |
-| name | Text | Required |
-
-Sample Data:
-- role_id: ROLE-001, name: Admin
-- role_id: ROLE-002, name: Manager
-- role_id: ROLE-003, name: Monitor
-- role_id: ROLE-004, name: Guest
-
-#### Table 5: Permissions
-
-| Field | Type | Settings |
-|-------|------|----------|
-| permission_id | Text | Primary Key |
-| name | Text | Required |
-
-Sample Data:
-- permission_id: PERM-001, name: view_venues
-- permission_id: PERM-002, name: edit_venues
-- permission_id: PERM-003, name: delete_venues
-- permission_id: PERM-004, name: view_reports
-- permission_id: PERM-005, name: manage_users
-- permission_id: PERM-006, name: manage_alerts
-
-#### Table 6: RolePermission
-
-Junction table linking roles to permissions.
-
-| Field | Type | Settings |
-|-------|------|----------|
-| role_permission_id | Text | Primary Key |
-| role_id | Link Records | Link to Roles |
-| permission_id | Link Records | Link to Permissions |
-
-Sample Data (link Admin to all permissions):
-- role_permission_id: RP-001, role_id: ROLE-001, permission_id: PERM-001
-- role_permission_id: RP-002, role_id: ROLE-001, permission_id: PERM-002
-- role_permission_id: RP-003, role_id: ROLE-001, permission_id: PERM-003
-- role_permission_id: RP-004, role_id: ROLE-001, permission_id: PERM-004
-- role_permission_id: RP-005, role_id: ROLE-001, permission_id: PERM-005
-- role_permission_id: RP-006, role_id: ROLE-001, permission_id: PERM-006
-
-#### Table 7: Users
-
-| Field | Type | Settings |
-|-------|------|----------|
-| user_id | Text | Primary Key |
-| email | Email | Required, unique |
-| username | Text | Required |
-| display_name | Text | Optional |
-| password | Text | Required (Long Text) |
-| phone | Text | Optional |
-| roles | Link Records | Link to Roles (allow multiple) |
-| created_at | DateTime | Auto-set on create |
-| last_login | DateTime | Optional |
-
-Sample Data:
-- user_id: USER-001, email: admin@venue.com, username: admin, display_name: Administrator, roles: ROLE-001
-- user_id: USER-002, email: manager@venue.com, username: manager, display_name: Sarah Manager, roles: ROLE-002
-- user_id: USER-003, email: monitor@venue.com, username: monitor, display_name: John Monitor, roles: ROLE-003
-- user_id: USER-004, email: guest@venue.com, username: guest, display_name: Guest User, roles: ROLE-004
+The bootstrap script does not seed these four custom tables. This avoids duplicating NocoBase's authentication data and keeps passwords managed by NocoBase.
 
 ### Phase 3: Events & Monitoring
 
@@ -394,7 +333,8 @@ For ClickEvents:
 | View application logs | `docker compose logs -f nocobase-app` |
 | View database logs | `docker compose logs -f nocobase-db` |
 | Restart services | `docker compose restart` |
-| Remove everything (deletes data) | `docker compose down -v` |
+| Remove containers (preserves bind-mounted data) | `docker compose down` |
+| Reset everything (deletes data) | `docker compose down -v; Remove-Item -Recurse -Force data/nocobase-storage` (PowerShell) |
 
 All commands must be run from the directory containing compose.yml.
 
@@ -406,7 +346,7 @@ Database connection error: Database may still be initializing. Wait 30 seconds, 
 
 Permission denied errors (macOS/Linux): Run `sudo usermod -aG docker $USER`
 
-Data loss after running docker compose down -v: The -v flag removes all volumes including your data. Use `docker compose down` alone to preserve data.
+Data reset: `docker compose down -v` deletes the Docker-managed database volume. Delete `data/nocobase-storage` separately because it is a bind mount, then run `docker compose up -d` again.
 
 ## Security
 
