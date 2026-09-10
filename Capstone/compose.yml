@@ -1,0 +1,71 @@
+
+networks:
+  nocobase:
+    driver: bridge
+
+services:
+  nocobase-app:
+    image: nocobase/nocobase:latest
+    container_name: nocobase_app
+    restart: always
+    ports:
+      - "13000:80"
+    depends_on:
+      nocobase-db:
+        condition: service_healthy
+    environment:
+      - APP_KEY=2EMehVx2q+K5RZkgn5VpTX5PfOxJkbKW5D9DbWFiOdo=
+      - DB_DIALECT=postgres
+      - DB_HOST=nocobase-db
+      - DB_PORT=5432
+      - DB_DATABASE=nocobase
+      - DB_USER=nocobase
+      - DB_PASSWORD=nocobase_secure_pass
+      - TZ=UTC
+    volumes:
+      # Bind mount: stores application data and files locally on your host machine
+      # Located at: ./data/nocobase-storage
+      - ./data/nocobase-storage:/app/nocobase/storage
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:80/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\""]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  nocobase-seed:
+    image: node:22-alpine
+    container_name: nocobase_seed
+    restart: on-failure
+    depends_on:
+      nocobase-app:
+        condition: service_healthy
+    environment:
+      NOCOBASE_URL: http://nocobase-app
+      NOCOBASE_ADMIN_EMAIL: admin@nocobase.com
+      NOCOBASE_ADMIN_PASSWORD: admin123
+    volumes:
+      - ./scripts/seed.js:/seed.js:ro
+    command: ["node", "/seed.js"]
+
+  nocobase-db:
+    image: postgres:15-alpine
+    container_name: nocobase_db
+    restart: always
+    command: postgres -c wal_level=logical
+    environment:
+      - POSTGRES_DB=nocobase
+      - POSTGRES_USER=nocobase
+      - POSTGRES_PASSWORD=nocobase_secure_pass
+    volumes:
+      # A named volume lets PostgreSQL create every required directory on a fresh clone.
+      - nocobase-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nocobase -d nocobase"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  nocobase-db-data:
