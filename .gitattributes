@@ -1,2 +1,6 @@
+# Container scripts must keep Unix line endings in Windows checkouts too.
+*.sh text eol=lf
+*.sql text eol=lf
+
 # pg_dump COPY rows use trailing tabs to represent empty final column values.
 seed/prototype.sql -whitespace
