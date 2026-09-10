@@ -18,8 +18,8 @@ docker compose version
 
 ## Start NocoBase
 
-Keep `compose.yml` and `README.md` together in the same project folder. Open a
-terminal in that folder and run:
+Keep this folder inside the repository so that the shared `../scripts/`
+directory remains available. Open a terminal in this folder and run:
 
 ```bash
 docker compose up -d
@@ -50,12 +50,15 @@ Once the application is ready, open this address in a browser:
 
 ## Login
 
-- Email: `admin@nocobase.local`
+- Email: `admin@nocobase.com`
 - Password: `admin123`
 
 If you plan to keep or share this installation, change the password after you
 sign in. These login settings only apply when the database is created for the
-first time.
+first time. The `admin-email` service also updates the original course-project
+administrator in an existing database from `admin@nocobase.local` to
+`admin@nocobase.com`, without changing the password. Its successful exit with
+code `0` is expected.
 
 ## Stop or restart NocoBase
 

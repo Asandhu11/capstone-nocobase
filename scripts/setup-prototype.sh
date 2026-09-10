@@ -3,7 +3,7 @@
 set -euo pipefail
 
 base_url="${NOCOBASE_URL:-http://127.0.0.1:13001}"
-admin_email="${NOCOBASE_ADMIN_EMAIL:-admin@nocobase.local}"
+admin_email="${NOCOBASE_ADMIN_EMAIL:-admin@nocobase.com}"
 admin_password="${NOCOBASE_ADMIN_PASSWORD:-admin123}"
 
 auth_payload=$(jq -nc \

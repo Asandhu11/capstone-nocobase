@@ -14,6 +14,10 @@ NocoBase, PostgreSQL, Node.js, or any programming tools.
   data.
 - `scripts/setup-prototype.sh` can rebuild the prototype collections and sample
   data after a fresh database is created.
+- The `admin-email` startup service updates the included administrator account
+  to `admin@nocobase.com` while preserving its password and existing data.
+- Database startup restores the empty PostgreSQL folders omitted by Git, so
+  a fresh clone can start the included database without manual folder creation.
 - `erd-final-preview.png` shows the team data model used for this prototype.
 - `network-final-preview.png` shows the team's proposed network design.
 
@@ -53,7 +57,7 @@ starting.
    cd /path/to/capstone-deliverable1-nocobase
    ```
 
-4. Start the two containers:
+4. Start the services:
 
    ```bash
    docker compose up -d
@@ -70,6 +74,8 @@ starting.
 
    `nocobase-postgres` should say `healthy`, and `nocobase-app` should say
    `Up`.
+   The `admin-email` setup service exits with code `0` after completing its
+   check; this is expected.
 
 6. Open this address in a web browser:
 
@@ -84,7 +90,7 @@ Use the included administrator account:
 
 | Field | Value |
 | --- | --- |
-| Email | `admin@nocobase.local` |
+| Email | `admin@nocobase.com` |
 | Password | `admin123` |
 
 This is a course-project password. Change it before using the system for real
@@ -267,6 +273,11 @@ missing `storage/` folder makes NocoBase install a new blank database.
 
 ### The login does not work
 
-The included credentials work with the submitted database. The `INIT_ROOT_*`
-values in `compose.yml` only create the administrator during the first install;
-they do not reset a password after the database already exists.
+Use `admin@nocobase.com` and `admin123`. If you have an older checkout, pull the
+latest changes and run `docker compose up -d` from the repository root. The
+`admin-email` service renames the original `admin@nocobase.local` administrator
+before the application starts, preserving its password, permissions, and data.
+
+The `INIT_ROOT_*` values only create the administrator during the first install.
+Neither these settings nor the email migration reset a password that you have
+already changed. To check the migration, run `docker compose logs admin-email`.

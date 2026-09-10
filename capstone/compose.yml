@@ -7,6 +7,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      admin-email:
+        condition: service_completed_successfully
     environment:
       APP_KEY: "change-this-course-project-app-key-2026"
       ENCRYPTION_FIELD_KEY: "course-project-encryption-key-2026"
@@ -17,7 +19,7 @@ services:
       DB_USER: nocobase
       DB_PASSWORD: nocobase
       TZ: America/New_York
-      INIT_ROOT_EMAIL: admin@nocobase.local
+      INIT_ROOT_EMAIL: admin@nocobase.com
       INIT_ROOT_PASSWORD: admin123
       INIT_ROOT_NICKNAME: Administrator
     volumes:
@@ -27,8 +29,23 @@ services:
     networks:
       - nocobase
 
+  admin-email:
+    image: postgres:16
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: nocobase
+    volumes:
+      - ../scripts/migrate-admin-email.sql:/migrate-admin-email.sql:ro
+    command: ["psql", "-h", "postgres", "-U", "nocobase", "-d", "nocobase", "-v", "ON_ERROR_STOP=1", "-f", "/migrate-admin-email.sql"]
+    networks:
+      - nocobase
+
   postgres:
     image: postgres:16
+    entrypoint: ["/bin/sh", "/prepare-postgres.sh"]
     restart: unless-stopped
     command: postgres -c wal_level=logical
     environment:
@@ -42,6 +59,7 @@ services:
       retries: 20
     volumes:
       - ./storage/db/postgres:/var/lib/postgresql/data
+      - ../scripts/prepare-postgres.sh:/prepare-postgres.sh:ro
     networks:
       - nocobase
 

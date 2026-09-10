@@ -19,6 +19,7 @@ services:
   # ---------------------------------------------------------------
   postgres:
     image: postgres:16
+    entrypoint: ["/bin/sh", "/prepare-postgres.sh"]
     container_name: nocobase-postgres
     restart: always
     # NocoBase's change-tracking / collaboration features need logical
@@ -37,6 +38,7 @@ services:
       # Keeps the database's data on your computer, in a "storage" folder
       # next to this compose.yml, so your data survives container restarts.
       - ./storage/db/postgres:/var/lib/postgresql/data
+      - ./scripts/prepare-postgres.sh:/prepare-postgres.sh:ro
     networks:
       - nocobase
 
@@ -51,6 +53,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      admin-email:
+        condition: service_completed_successfully
     environment:
       # A random secret NocoBase uses to encrypt things like login
       # tokens. It can be any long random string. Already generated
@@ -68,7 +72,7 @@ services:
 
       # These values create the first administrator account only when the
       # database is empty. Change the password after the first sign-in.
-      - INIT_ROOT_EMAIL=admin@nocobase.local
+      - INIT_ROOT_EMAIL=admin@nocobase.com
       - INIT_ROOT_PASSWORD=admin123
       - INIT_ROOT_NICKNAME=Administrator
 
@@ -82,5 +86,21 @@ services:
       # NocoBase listens on port 80 inside the container; we expose it
       # on port 13001 on your computer so you can open it in a browser.
       - '127.0.0.1:13001:80'
+    networks:
+      - nocobase
+
+  # Update the administrator in the included database before the app starts.
+  # Empty databases use INIT_ROOT_EMAIL during NocoBase's first installation.
+  admin-email:
+    image: postgres:16
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: nocobase
+    volumes:
+      - ./scripts/migrate-admin-email.sql:/migrate-admin-email.sql:ro
+    command: ["psql", "-h", "postgres", "-U", "nocobase", "-d", "nocobase", "-v", "ON_ERROR_STOP=1", "-f", "/migrate-admin-email.sql"]
     networks:
       - nocobase
