@@ -1,3 +1,5 @@
+name: nocobase
+
 services:
   postgres:
     image: postgres:16
@@ -16,8 +18,8 @@ services:
       retries: 60
     volumes:
       - ./storage/db/postgres:/var/lib/postgresql/data
-      - ./scripts/prepare-postgres.sh:/prepare-postgres.sh:ro
-      - ./seed/prototype.sql:/docker-entrypoint-initdb.d/01-prototype.sql:ro
+      - ../scripts/prepare-postgres.sh:/prepare-postgres.sh:ro
+      - ../seed/prototype.sql:/docker-entrypoint-initdb.d/01-prototype.sql:ro
 
   prototype-migrations:
     image: postgres:16
@@ -28,8 +30,8 @@ services:
     environment:
       PGPASSWORD: nocobase
     volumes:
-      - ./scripts/migrate-admin-email.sql:/migrate-admin-email.sql:ro
-      - ./scripts/migrate-table-actions.sql:/migrate-table-actions.sql:ro
+      - ../scripts/migrate-admin-email.sql:/migrate-admin-email.sql:ro
+      - ../scripts/migrate-table-actions.sql:/migrate-table-actions.sql:ro
     command: ["psql", "-h", "postgres", "-U", "nocobase", "-d", "nocobase", "-v", "ON_ERROR_STOP=1", "-f", "/migrate-admin-email.sql", "-f", "/migrate-table-actions.sql"]
 
   app:
@@ -40,8 +42,8 @@ services:
       prototype-migrations:
         condition: service_completed_successfully
     environment:
-      APP_KEY: "1d542c38a36d5d8768c5de53aa69207f"
-      ENCRYPTION_FIELD_KEY: "5adcb2279fb94fc9be4f16e751f9a00a"
+      APP_KEY: "change-this-course-project-app-key-2026"
+      ENCRYPTION_FIELD_KEY: "course-project-encryption-key-2026"
       DB_DIALECT: postgres
       DB_HOST: postgres
       DB_PORT: "5432"
@@ -64,6 +66,6 @@ services:
       retries: 60
     volumes:
       - ./storage:/app/nocobase/storage
-      - ./seed/assets/logo-sheoaa.png:/app/nocobase/storage/uploads/logo-sheoaa.png:ro
+      - ../seed/assets/logo-sheoaa.png:/app/nocobase/storage/uploads/logo-sheoaa.png:ro
     ports:
-      - "127.0.0.1:${NOCOBASE_PORT:-13001}:80"
+      - "127.0.0.1:${NOCOBASE_PORT:-13000}:80"

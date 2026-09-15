@@ -1,0 +1,7 @@
+# Runtime state is recreated from seed/prototype.sql on the first startup.
+/storage/
+/capstone/storage/
+*.zip
+.DS_Store
+.env
+backup.sql
