@@ -1,3 +1,7 @@
+# HI THIS IS DR BAUMSTARK
+
+Lol I'm in your Readme changing yer files.
+
 # Occupancy & Access "Clicker" System — NocoBase Prototype
 
 This repository contains a working prototype of a venue occupancy-tracking ("clicker") system, built as a no-code CRUD application on top of [NocoBase](https://github.com/nocobase/nocobase). It's started with a single `compose.yml` using Docker Compose, and it runs two containers:
