@@ -42,11 +42,34 @@ keeps its own runtime data under `capstone/storage/`; use one location consisten
 | Occupancy Dashboard | Venues: Add new, View, Edit. Alerts: View, Edit. |
 | Device Monitor | Devices: View, Edit. |
 | Event Log | Click events: View, Edit. |
+| Entry Attendant | Click events: submit-only form to log an entry at a chosen entrance/device. |
+| Exit Attendant | Click events: submit-only form to log an exit at a chosen entrance/device. |
+| Manager View | Venues and Click events: read-only tables for occupancy and recent activity. |
 
 Select **View** beside a record for its details, or **Edit** to change its
 fields and select **Submit**. For example, staff can acknowledge or resolve an
 alert, update a device's credential status, or change a venue's capacity.
 The existing venue **Add new** form remains available.
+
+## Sprint 3: attendant and manager screens
+
+Three role-based screens were added on top of the shared prototype, based on
+wireframes for an entryway attendant, an exit attendant, and a manager:
+
+- **Entry Attendant** - a simplified form (Entrance, Device, Occurred at) for
+  logging a person entering a venue. Event type is locked to "Entry" and
+  Occupancy change is locked to `1`, so the attendant never has to think
+  about the underlying data model.
+- **Exit Attendant** - the mirror of the above, with Event type locked to
+  "Exit" and Occupancy change locked to `-1`.
+- **Manager View** - read-only tables showing current occupancy/capacity per
+  venue, plus a log of recent click events (entrance, device, event type,
+  timestamp) for monitoring attendance across venues.
+
+A NocoBase **Workflow** ("Set click event token", a global-mode post-action
+event on the Click events collection's create action) automatically fills in
+each new click event's idempotency token using the new record's ID, so
+attendants never see or manage that field themselves.
 
 The sample data includes Harbor Center at 412 of 500 occupants and Eastside
 Fieldhouse at 267 of 800. Device credentials demonstrate valid, expiring, and
