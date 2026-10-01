@@ -30,7 +30,8 @@ services:
     volumes:
       - ./scripts/migrate-admin-email.sql:/migrate-admin-email.sql:ro
       - ./scripts/migrate-table-actions.sql:/migrate-table-actions.sql:ro
-    command: ["psql", "-h", "postgres", "-U", "nocobase", "-d", "nocobase", "-v", "ON_ERROR_STOP=1", "-f", "/migrate-admin-email.sql", "-f", "/migrate-table-actions.sql"]
+      - ./scripts/migrate-sprint3.sql:/migrate-sprint3.sql:ro
+    command: ["psql", "-h", "postgres", "-U", "nocobase", "-d", "nocobase", "-v", "ON_ERROR_STOP=1", "-f", "/migrate-admin-email.sql", "-f", "/migrate-table-actions.sql", "-f", "/migrate-sprint3.sql"]
 
   app:
     # The exported page models were tested with this exact NocoBase image.
@@ -66,4 +67,4 @@ services:
       - ./storage:/app/nocobase/storage
       - ./seed/assets/logo-sheoaa.png:/app/nocobase/storage/uploads/logo-sheoaa.png:ro
     ports:
-      - "127.0.0.1:${NOCOBASE_PORT:-13001}:80"
+      - "127.0.0.1:${NOCOBASE_PORT:-13003}:80"
