@@ -1,151 +1,156 @@
-# Clicker Occupancy Prototype
+# Clicker Sprint 3
 
-A NocoBase course prototype for venues, entrances, devices, click events,
-occupancy snapshots, alerts, notification subscriptions, and audit records.
-It has three pages and eight collections. It does not yet provide a separate
-page for every collection in the team's 14-collection ERD.
+**Developer:** Ayoola Morakinyo
 
-## Start from a fresh clone
+**Branch:** `sprint3-Ayoola`
 
-Install and start Docker Desktop (or Docker Engine with Compose v2 on Linux).
-No local PostgreSQL, Node.js, curl, or jq installation is required.
+**Base:** team `main` at `7f7bd2b74c7a75226137a9ac9c072961f2807956`
 
-From the repository root, run:
+Sprint 3 Deliverable 1 adds separate NocoBase screens for entryway attendants,
+exit attendants, and attendance managers. The original Sprint 2 collections and
+administrator pages remain available.
 
-```bash
-docker compose up -d --wait --wait-timeout 600
-```
+## Start the website
 
-The first run can take several minutes to download the images. Compose waits
-until the database export has finished restoring, the migrations have run,
-and the application API is ready.
+1. Start Docker Desktop (or Docker Engine with Compose v2 on Linux).
+2. Extract the ZIP. Keep all its directories together.
+3. Open a terminal in the folder containing this README and `compose.yml`.
+4. Run `docker compose up -d --wait --wait-timeout 600`.
+5. Open **http://localhost:13003**. The first startup may take several minutes.
 
-Open <http://localhost:13001> and sign in:
+No local Node.js, Python, PostgreSQL or NocoBase installation is needed to run
+the submission. Start from the repository root, not the legacy `capstone/`
+subdirectory. If the port is occupied, put `NOCOBASE_PORT=13004` in a `.env`
+file next to Compose, start again, and open http://localhost:13004.
 
-| Field | Value |
-| --- | --- |
-| Email | `admin@nocobase.com` |
-| Password | `admin123` |
+## Demo accounts
 
-These are shared course-demo credentials. Existing installations keep any
-password their administrator has already changed.
+All accounts use the course-demo password **`admin123`**.
 
-`./scripts/setup-prototype.sh` runs the same startup command if you prefer a
-helper script. No additional manual seeding or folder creation is required.
-The alternate `capstone/compose.yml` starts the same seed on port 13000 and
-keeps its own runtime data under `capstone/storage/`; use one location consistently.
-
-## What you can do
-
-| Page | Tables and actions |
-| --- | --- |
-| Occupancy Dashboard | Venues: Add new, View, Edit. Alerts: View, Edit. |
-| Device Monitor | Devices: View, Edit. |
-| Event Log | Click events: View, Edit. |
-
-Select **View** beside a record for its details, or **Edit** to change its
-fields and select **Submit**. For example, staff can acknowledge or resolve an
-alert, update a device's credential status, or change a venue's capacity.
-The existing venue **Add new** form remains available.
-
-The sample data includes Harbor Center at 412 of 500 occupants and Eastside
-Fieldhouse at 267 of 800. Device credentials demonstrate valid, expiring, and
-revoked states. Click events include a unique idempotency token and a processed
-flag; automated hardware ingestion and occupancy reconciliation are future work.
-
-## Collections
-
-| Collection | Purpose |
-| --- | --- |
-| Venues | Capacity, occupancy, address, time zone, status |
-| Entrances | Direction and location within a venue |
-| Devices | Hardware, credentials, activity, last check-in |
-| Click events | Entry, exit, and correction events |
-| Occupancy snapshots | Saved counts for reporting |
-| Alerts | Capacity, offline-device, and count-mismatch warnings |
-| Notification subscriptions | Alert destinations for users and venues |
-| Audit log | Administrative and operational records |
-
-The collections retain their relationships: venues have entrances, entrances
-have devices, and devices have click events. Alerts and snapshots belong to
-venues, and selected records connect to NocoBase users.
-
-`erd-final-preview.png` and `network-final-preview.png` contain the team's
-reference diagrams. The UI Editor in NocoBase lets administrators extend the
-configured pages; those changes are stored in the database.
-
-## Reproducible setup and persistence
-
-- `seed/prototype.sql` is a portable PostgreSQL export containing the demo
-  records, administrator, collections, relationships, and configured UI.
-- `seed/assets/` contains the logo referenced by the export.
-- PostgreSQL restores the export only when its data directory is empty.
-- `prototype-migrations` updates the original admin email and adds the View/Edit
-  forms to existing copies of this prototype. It exits with code 0 on success.
-  Repeating startup does not duplicate the actions or replace your records.
-- The NocoBase image is pinned to the version tested with the exported UI.
-
-Runtime files are excluded from Git. Docker creates the bind-mounted folders:
-
-| Host folder | Container path | Contents |
+| Account | Email | Access |
 | --- | --- | --- |
-| `./storage` | `/app/nocobase/storage` | Uploads, logs, application runtime files |
-| `./storage/db/postgres` | `/var/lib/postgresql/data` | Records, collections, user accounts, page layouts |
+| Entryway attendant | `entry@clicker.test` | Entry screen and recording entries |
+| Exit attendant | `exit@clicker.test` | Exit screen and recording exits |
+| Attendance manager | `manager@clicker.test` | Read-only manager screen |
+| Administrator | `admin@nocobase.com` | All screens and original administration pages |
 
-Stopping or recreating containers keeps these folders and your changes:
+Sign out before changing accounts, or use separate browser profiles. An
+administrator may need to select the **Root** role to see all pages. These are
+shared demo accounts; the web port is bound to the local computer only.
+
+## Wireframes and matching screens
+
+Open **`docs/wireframes/Sprint3_Ayoola_Wireframes.pdf`**. Its three pages were
+created before implementing the GUIs and specify each role's layout, controls,
+and feedback.
+The assignment allows a tool like Visio rather than requiring a Visio file.
+
+The GUIs are native NocoBase **JS blocks**, stored in the page model data. Their
+reviewable JavaScript source files are in `ui/`.
+
+### Entryway attendant
+
+Sign in as `entry@clicker.test`. Choose **Harbor Community Night - Harbor
+Center**, select **North Gate**, and click **+ Record one entry** once per person.
+The event attendance and venue occupancy increase together. A success message
+confirms the count. The screen also shows capacity, spaces remaining and recent
+entries. Entry is rejected when the venue is full or closed.
+
+### Exit attendant
+
+Sign in as `exit@clicker.test`. Select the same event and **South Exit**, then
+click **- Record one exit**. Attendance decreases, and an exit is rejected at
+zero. Each screen requires an active event and an active station in the correct
+venue and direction. **East Lobby** supports both directions for Eastside Open
+Gym. The inactive Service Gate is not offered.
+
+Both screens refresh every five seconds and provide manual refresh. Buttons
+are disabled while saving. After an uncertain network response, **Retry last
+entry/exit** reuses the request ID and cannot count twice. Keep the page open
+until the uncertain count is resolved; a reload does not retain that retry.
+
+### Manager attendance
+
+Sign in as `manager@clicker.test`. Filter by venue, active/closed status or event
+name. Summary totals reflect the filtered events. Each row shows its event,
+venue, start time, status, entries, exits, people inside, and venue capacity.
+Closed events retain historical totals. Entries include re-entry and are not a
+count of unique people. Managers cannot edit attendance totals.
+
+The deliverable supplies three example events. An administrator can configure
+more events using NocoBase's collection/page configuration.
+
+## Sample data
+
+The active events carry forward the team's Sprint 2 opening balances: Harbor
+Center has **412 of 500** occupants and Eastside Fieldhouse has **267 of 800**.
+These opening balances are not newly generated click records. A closed **Harbor
+Workshop** demonstrates history with 420 entries, 420 exits and zero inside.
+All records represent fictional demo data.
+
+New actions are stored in `entryRecords` and `exitRecords`. The original
+`clickEvents` hardware-event prototype remains separate; it is not another
+source of Sprint 3 attendance totals.
+
+## Implementation
+
+NocoBase provides authentication, roles, collections, API requests and native
+page blocks. There is no separate website or external API service.
+
+Each count inserts an immutable record and updates the event and venue in one
+PostgreSQL transaction. Row locks serialize concurrent counts. Database checks
+reject duplicate request IDs, invalid stations, closed events, entry beyond
+capacity and exits below zero. Staff cannot directly edit totals or records.
+
+NocoBase workflows were considered. A database trigger handles counting so
+capacity validation and both total updates are atomic, even when different
+attendants click at once. No manual workflow activation is needed.
+
+## Persistence and submission contents
+
+The ZIP contains **compose.yml, README.md, the complete storage bind mount,
+wireframes, UI source, migrations and seed files**. The latter files are included
+because Compose references them. The application and database were stopped
+before the raw database files were copied into the archive.
+
+| Host path | Container path | Contents |
+| --- | --- | --- |
+| `./storage` | `/app/nocobase/storage` | Runtime files and uploads |
+| `./storage/db/postgres` | `/var/lib/postgresql/data` | Records, users, roles and page layouts |
+| Individual `./scripts` and `./seed` files | Read-only startup mounts | Migrations, initial database and logo |
+
+For a fresh Git clone without `storage/`, startup restores the team seed and
+applies the Sprint 3 migration. Repeated startup preserves records and passwords.
+Do not delete `storage/` to restart the site.
 
 ```bash
 docker compose down
 docker compose up -d --wait --wait-timeout 600
 ```
 
-Do not delete `storage/` to restart the app. A deliberately empty storage
-folder restores the original demo instead of your latest edits.
-
-## Update an older checkout
-
-Back up your existing site first, then pull this branch and run the startup
-command again. The migrations preserve existing records and passwords, rename
-the original `admin@nocobase.local` account to `admin@nocobase.com`, and add the
-new table actions. The PostgreSQL wrapper repairs the empty folders omitted by
-older commits that tracked raw database files.
-
-For a backup that does not require stopping PostgreSQL:
+To make a logical backup:
 
 ```bash
 docker compose exec -T postgres pg_dump -U nocobase -d nocobase --no-owner --no-acl > backup.sql
 ```
 
-Also save your uploaded files and Compose configuration. Keep personal backups
-outside Git. For a complete copy of the raw `storage/` folder, stop the services
-first so the database files are consistent. When updating an old Git checkout,
-keep the backup outside the repository because the update removes formerly
-tracked runtime files.
+Keep backups outside Git. Stop services before copying raw storage directories.
+The original ERD and network PNGs are the team's Sprint 2 references; the team
+report and updated network diagram belong to Deliverable 3.
 
-## Troubleshooting
-
-Inspect service status and recent logs:
+## Troubleshooting and verification
 
 ```bash
 docker compose ps -a
-docker compose logs --tail=100 postgres prototype-migrations app
+docker compose logs --tail=80 postgres prototype-migrations app
 ```
 
-If port 13001 is busy, set `NOCOBASE_PORT` in a local `.env` file, for example:
+Wait for the app health check before signing in. A maintenance page during
+startup is normal. If an administrator changed a password, use that password;
+startup does not reset it.
 
-```dotenv
-NOCOBASE_PORT=13002
-```
-
-Start Compose again and open that port. Fixed container names are not used,
-so separate checkouts can run with distinct Compose project names and ports.
-
-If the site is blank, check that you started from the repository root and that
-PostgreSQL restored `/docker-entrypoint-initdb.d/01-prototype.sql` successfully.
-An existing unrelated or previously blank database is intentionally preserved;
-the initial export is not reapplied over it. Back up that installation and use
-a separate fresh checkout to load the supplied demo.
-
-If login fails, use the email above, check the migration logs, and use your own
-password if you changed it earlier. `INIT_ROOT_*` settings do not reset existing
-passwords.
+See `docs/sprint3-validation.md` for completed checks. The optional integration
+test `python3 scripts/test-sprint3.py` writes prefixed test records. Run it against
+a disposable copy, not an installation with real counts. To rebuild page
+configuration after editing `ui/`, run `python3 scripts/build-sprint3.py`, stop
+the app, and start Compose again. No source rebuild is needed to use the ZIP.
