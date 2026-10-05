@@ -4,3 +4,4 @@
 
 # pg_dump COPY rows use trailing tabs to represent empty final column values.
 seed/prototype.sql -whitespace
+*.pdf binary

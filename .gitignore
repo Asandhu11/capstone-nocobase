@@ -5,3 +5,6 @@
 .DS_Store
 .env
 backup.sql
+/tests/node_modules/
+__pycache__/
+/tmp/
