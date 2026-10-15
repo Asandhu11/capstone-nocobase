@@ -30,3 +30,10 @@ docker compose exec -T postgres pg_dump -U nocobase -d nocobase \
 Keep referenced upload assets and the tested NocoBase image in sync with the
 export. Validate it in a separate checkout with empty storage before committing.
 Runtime PostgreSQL files must remain ignored by Git.
+
+## Sprint 3 refresh
+
+`prototype.sql` was re-exported after adding the Sprint 3 Entry Attendant, Exit
+Attendant, and Manager View pages and the "Set click event token" workflow, using
+the command above. It also contains the ten test click events created while
+testing those screens.

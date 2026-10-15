@@ -32,8 +32,14 @@ password their administrator has already changed.
 
 `./scripts/setup-prototype.sh` runs the same startup command if you prefer a
 helper script. No additional manual seeding or folder creation is required.
-The alternate `capstone/compose.yml` starts the same seed on port 13000 and
-keeps its own runtime data under `capstone/storage/`; use one location consistently.
+
+## Submission note (clean start)
+
+This zip contains `compose.yml`, this README, `scripts/`, `seed/`, `docs/`, and
+an empty `storage/` folder tree for the bind mounts. `storage/db/postgres` is
+intentionally empty: on the first `docker compose up`, PostgreSQL builds the
+database from `seed/prototype.sql`, so no pre-existing database files are read.
+Unzip anywhere, open a terminal in the unzipped folder, and run the command above.
 
 ## What you can do
 
@@ -54,7 +60,8 @@ The existing venue **Add new** form remains available.
 ## Sprint 3: attendant and manager screens
 
 Three role-based screens were added on top of the shared prototype, based on
-wireframes for an entryway attendant, an exit attendant, and a manager:
+wireframes for an entryway attendant, an exit attendant, and a manager (see
+`docs/wireframes/Sprint3_Amninder_Wireframes.pdf`):
 
 - **Entry Attendant** - a simplified form (Entrance, Device, Occurred at) for
   logging a person entering a venue. Event type is locked to "Entry" and
@@ -100,7 +107,9 @@ configured pages; those changes are stored in the database.
 ## Reproducible setup and persistence
 
 - `seed/prototype.sql` is a portable PostgreSQL export containing the demo
-  records, administrator, collections, relationships, and configured UI.
+  records, administrator, collections, relationships, and configured UI,
+  including the Sprint 3 Entry Attendant, Exit Attendant, and Manager View
+  pages and the "Set click event token" workflow.
 - `seed/assets/` contains the logo referenced by the export.
 - PostgreSQL restores the export only when its data directory is empty.
 - `prototype-migrations` updates the original admin email and adds the View/Edit
