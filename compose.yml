@@ -68,3 +68,47 @@ services:
       - ./seed/assets/logo-sheoaa.png:/app/nocobase/storage/uploads/logo-sheoaa.png:ro
     ports:
       - "127.0.0.1:${NOCOBASE_PORT:-13003}:80"
+
+  # ---- Sprint 4: end-to-end (Selenium) testing. These two services only start when
+  # ---- you ask for the "e2e" profile, so a normal `docker compose up` is unchanged.
+  selenium:
+    profiles: ["e2e"]
+    # A real Chromium browser (with a virtual screen) that the tests remote-control.
+    image: ${SELENIUM_IMAGE:-selenium/standalone-chromium:4.25.0}
+    shm_size: "2gb"
+    environment:
+      SE_SCREEN_WIDTH: "1440"
+      SE_SCREEN_HEIGHT: "1000"
+      SE_NODE_MAX_SESSIONS: "2"
+      SE_NODE_OVERRIDE_MAX_SESSIONS: "true"
+      SE_VNC_NO_PASSWORD: "1"
+    ports:
+      # 7900 lets you watch the browser live at http://localhost:7900 while tests run.
+      - "127.0.0.1:4444:4444"
+      - "127.0.0.1:7900:7900"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - "curl -sf http://localhost:4444/status | grep -q '\"ready\": *true'"
+      interval: 5s
+      timeout: 5s
+      start_period: 10s
+      retries: 40
+
+  e2e-tests:
+    profiles: ["e2e"]
+    # Python + pytest + selenium. Runs once, prints results, then exits.
+    build: ./e2e
+    depends_on:
+      app:
+        condition: service_healthy
+      selenium:
+        condition: service_healthy
+    environment:
+      BASE_URL: http://app
+      SELENIUM_URL: http://selenium:4444/wd/hub
+      ARTIFACT_DIR: /artifacts
+    volumes:
+      - ./e2e:/tests:ro
+      # Test report (results.xml) and failure screenshots end up here on your computer.
+      - ./e2e/artifacts:/artifacts

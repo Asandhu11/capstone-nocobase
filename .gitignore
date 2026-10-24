@@ -8,3 +8,5 @@ backup.sql
 /tests/node_modules/
 __pycache__/
 /tmp/
+/e2e/artifacts/*
+!/e2e/artifacts/.gitkeep
