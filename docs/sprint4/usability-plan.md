@@ -1,114 +1,152 @@
-# Clicker Sprint 4 usability testing plan
+# Clicker Sprint 4: Usability Testing Plan and Session Report
 
 **Researcher:** Ayoola Morakinyo
-**Branch:** `sprint4-Ayoola`, created from team `main` at `e0f3c52`
-**Status:** Plan prepared; participant sessions and observations pending.
 
-## Purpose
+**Project:** Clicker event-attendance system
 
-Find where first-time attendants and attendance managers struggle to record
-accurate counts, understand limits, and interpret event totals. Use the same six
-tasks for moderated sessions and Selenium end-to-end checks. Automated passing
-results demonstrate functional behavior; participant evidence establishes usability.
+**Branch:** sprint4-Ayoola, based on the merged Sprint 3 implementation
 
-## Participants and scheduling
+**Source:** Clicker Sprint 4 Usability Session (1).pdf, the latest session notes supplied by Ayoola on October 25, 2026. Notes were captured using a notetaker app and compiled after the sessions. Participant names are replaced by P1, P2 and P3.
 
-Recruit at least three friends or family members who are **not in this class**.
-Aim for different levels of comfort with web applications. Use P1, P2 and P3 in
-the submitted notes; keep contact details outside the repository.
+## Summary
 
-| Participant | Not in class confirmed | Relevant web experience | Date/time and timezone | Session completed |
-| --- | --- | --- | --- | --- |
-| P1 | Pending | Pending | Pending | No |
-| P2 | Pending | Pending | Pending | No |
-| P3 | Pending | Pending | Pending | No |
+The three session records report the expected functional results for the six tasks: staff sign-in, recording an entry, recording an exit, enforcing capacity, filtering reports and reading historical totals. The sessions also identified improvements to selection persistence, search, filtering, count interpretation and recovery from mistakes.
 
-Invitation draft: “Could you spend about 30 minutes trying a class project that
-records event attendance? I’m testing the website, not you. You would try six
-short tasks while saying what you are thinking. You can stop at any time.”
+Correct totals do not by themselves establish an easy or independent experience. Assistance levels and task durations were not recorded in the compiled notes, so this report does not calculate an unassisted-completion rate or reconstruct task timings. Estimated ease values remain explicitly marked. Interpretations are separated from observed behavior and recorded feedback.
 
-## Setup and facilitation
+## Participants and method
 
-1. Use a local, fictional-data installation on http://localhost:13004. Record
-   the branch/commit, browser/version, operating system, viewport and device.
-2. Start the app using the README. Before each participant, run
-   `docker compose --profile e2e run --rm e2e python prepare_usability.py`.
-   Save its printed event, venue and station names. This creates fresh T2–T4
-   scenarios without deleting a previous participant's evidence.
-3. Substitute the printed names for the bracketed task names below. Verify the
-   starting values using a separate facilitator browser, then close it. Do not
-   preselect controls in the participant's browser.
-4. Use a fresh private window for each role transition so one participant is
-   not affected by the previous login. The test evaluates sign-in; sign-out and
-   switching roles in one window are additional exploratory checks.
-5. Give the participant the role's demo email and password `admin123` on a card.
-   Read only the scenario prompt, not the success criteria or Selenium steps.
-6. Ask permission to take notes. Ask separately before recording audio/video;
-   recording is optional. Say: “We are testing the system, not your ability.
-   Please tell me what you expect to happen and anything that confuses you.”
-7. Let the participant work unaided. Prompt “What are you thinking?” without
-   pointing at controls. At the time limit ask whether they want to stop or get
-   help; record any help and mark completion as assisted.
-8. After each task ask ease on a **1–7 scale** (1 very difficult, 7 very easy)
-   and “What, if anything, was confusing?” End with their top three improvements.
+The study plan called for at least three participants outside the class with varied experience. The session notes describe the following participants:
 
-Allow 3 minutes for introduction, about 20 minutes for tasks, and 5 minutes for
-debrief. Read tasks in order; T2–T4 have independent data so a failed task does
-not prevent later tasks.
+| Participant | Experience described in the notes | Recorded entry-save timestamp |
+| --- | --- | --- |
+| P1 | Basic phone and web use; little dashboard experience; first-time volunteer profile | 11:11:24 PM |
+| P2 | Front-desk, check-in, retail and event experience | 11:15:53 PM |
+| P3 | Attendance coordination, spreadsheets and reporting | 11:19:06 PM |
 
-## Tasks and success criteria
+These are application save timestamps from T2, not session start times or durations. They are reproduced as documented; the notes do not separately record their timezone. Exact participant names, recruitment confirmations, browser version and viewport were not included in the compiled notes.
 
-| ID | Role and participant prompt | Starting state | Observable success | Limit | Selenium coverage |
-| --- | --- | --- | --- | --- | --- |
-| T1 | Entry attendant: “You are starting a shift. Use these account details to reach the screen for your work. Tell me how you know it is the right screen.” | Signed out; `entry@clicker.test` | Signs in and identifies Entryway attendant without help. Repeat sign-in when moving to exit and manager roles. | 3 min | `test_t1_sign_in_to_assigned_screen` covers all 3 accounts. |
-| T2 | Entry attendant: “One guest arrives at [Entry Gate] for [T2 event]. Record the arrival and tell me how many people are now inside and how you know it was saved.” | 2 inside, capacity 5; nothing selected | Selects correct event/station, records exactly once, sees 3 inside, confirmation and recent entry; refresh keeps 3. | 4 min | `test_t2_record_one_entry_and_check_it_persists`; also required-selection and station filtering checks. |
-| T3 | Exit attendant: “The last guest leaves [T3 event] through [Exit Gate]. Record the departure. Then explain what you would do if asked to record another exit.” | 1 inside; `exit@clicker.test` | Records one exit, sees 0 and saved feedback; recognizes empty-event warning and cannot record a negative count. | 4 min | `test_t3_record_one_exit_and_stop_at_zero`. |
-| T4 | Entry attendant: “There are four guests at [T4 event], which holds five. One more arrives, then another. Handle both arrivals and explain what the system tells you.” | 4 inside, capacity 5; `entry@clicker.test` | First entry brings count to 5; second is blocked; participant understands capacity warning. | 4 min | `test_t4_fill_last_space_and_block_further_entry`. |
-| T5 | Manager: “Find the active [T2 event] at [T2 venue]. Report its entries, exits and people inside. Search for an event called ‘No Such Event’, then return to the event you were reviewing.” | `manager@clicker.test`; facilitator records actual post-T2 state | Uses venue, active status and name filters; reports matching totals; recognizes no-results state and recovers. If T2 succeeded: entries 3, exits 0, inside 3. | 4 min | `test_t5_filter_manager_attendance_and_recover_from_no_results` uses independent known data: 2, 0, 2. |
-| T6 | Manager: “Find the completed Harbor Workshop at Harbor Center. Tell me its total entries, exits and people still inside. Explain whether 420 entries necessarily means 420 different people.” | Existing closed Harbor Workshop | Finds closed event; reads 420 entries, 420 exits, 0 inside; notices re-entry distinction; does not change historical counts. | 3 min | `test_t6_review_closed_event_history_without_changing_counts` checks totals and read-only controls. Participant interpretation is assessed manually. |
+The planned environment was the fictional-data Clicker installation at http://localhost:13004. Each participant had separate Arrival, Departure and Capacity scenarios. All three attempted the same tasks. Entry, exit and manager demo accounts were used as appropriate.
 
-Record completion as **unassisted / assisted / failed / not attempted**. Start
-timing after reading the prompt and stop at success or abandonment. Note errors,
-hesitation, wrong selections, repeated clicks, misleading feedback and recovery.
-A correct final count after coaching is assisted, not unassisted.
+The facilitation protocol was to give one scenario at a time, invite the participant to think aloud, avoid directional help unless needed and record any assistance. Fresh private browser sessions were planned between role changes. After each task, ease was recorded on a 1-7 scale, from very difficult to very easy. The compiled notes contain results and feedback but do not establish whether every protocol step was followed.
 
-## Observations
+## Six-task usability testing plan
 
-**No participant sessions have been conducted yet.** Fill the following records
-from actual sessions. Do not present Selenium findings or predicted problems
-as participant observations.
+| Task | Participant scenario | Success criteria |
+| --- | --- | --- |
+| T1: Sign in | Start a shift using the entry-attendant account and explain how the correct role screen is identified. | Reaches Entryway attendant and identifies the role. Planned limit: 3 minutes. |
+| T2: Record an arrival | One guest arrives at the assigned Arrival event and Entry Gate. Record the arrival, explain how saving is confirmed, then reload and check the saved count. | Inside changes from 2 to 3; one entry and updated venue total; count persists after reload. Planned limit: 4 minutes. |
+| T3: Record the final departure | Using the exit account, record the last guest leaving the assigned Departure event; explain what happens if another exit is requested. | Inside changes from 1 to 0; saved feedback and empty-event warning; further exit blocked. Planned limit: 4 minutes. |
+| T4: Handle capacity | Four guests are inside a venue holding five. Handle one arriving guest and then a second arrival at the assigned Capacity event. | First arrival brings inside to 5; another entry is blocked; capacity feedback is understood. Planned limit: 4 minutes. |
+| T5: Filter reports | Using the manager account, find the active Arrival event by venue, status and event name; report totals, search for No Such Event and restore the original report. | Correct filtered row and totals; empty-search state recognized; original report restored. Expected totals are 3/0/3 when T2 records one arrival. Planned limit: 4 minutes. |
+| T6: Interpret history | Find the closed Harbor Workshop at Harbor Center, report its totals and explain whether 420 entries means 420 different people. | Reads 420 entries, 420 exits and 0 inside; distinguishes entry operations from unique people. Planned limit: 3 minutes. |
 
-Copy this table for each participant:
+## Observations: functional outcomes
 
-| Participant | Task | Completion | Seconds | Errors / help given | Ease 1–7 | Observed behavior / exact quote | Evidence ID |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Pending | T1 | Not attempted | — | — | — | — | — |
-| Pending | T2 | Not attempted | — | — | — | — | — |
-| Pending | T3 | Not attempted | — | — | — | — | — |
-| Pending | T4 | Not attempted | — | — | — | — | — |
-| Pending | T5 | Not attempted | — | — | — | — | — |
-| Pending | T6 | Not attempted | — | — | — | — | — |
+The following expands the source's repeated "same" entries into explicit outcomes. These are reported functional outcomes, not claims that every task was completed without help.
 
-For each distinct issue, preserve every occurrence even if it will later be
-merged into one team issue:
+| Task | Outcome documented for P1, P2 and P3 | Interpretation limit |
+| --- | --- | --- |
+| T1 | Each reached Entryway attendant. | Assistance and sign-in duration were not recorded. |
+| T2 | Each recorded 2 to 3 inside, received saved feedback and saw 3 after reload and reselection. | Selection persistence and saved-count persistence are different behaviors. |
+| T3 | Each recorded 1 to 0 inside; further exit was disabled. P2 also pressed the disabled control without changing the count. | This establishes zero-limit behavior, not availability of a correction workflow. |
+| T4 | Each reached 5 inside; the next arrival was blocked. P2's additional press did not add a sixth person. | Near-capacity warning prominence remains a separate design concern. |
+| T5 | Each obtained 3 entries, 0 exits and 3 inside; unmatched search showed no rows and zero summaries; restoring the search restored the report. | P3 additionally documented a stale-status-filter problem when returning from history. |
+| T6 | Each record shows Harbor Workshop at 420 entries, 420 exits and 0 inside, with closed status. | Re-entry understanding is documented for P2 and P3. P1's interpretation was not explicitly recorded. |
 
-| Observation ID | Participant/task | What happened and evidence | Expected behavior / impact | Severity | Suggested change | Team issue |
-| --- | --- | --- | --- | --- | --- | --- |
-| Pending | — | — | — | — | — | — |
+## Observations: P1
 
-Severity: **Critical** = wrong counts, lost data or blocked core workflow;
-**High** = task fails or needs substantial help; **Medium** = recoverable
-confusion/delay; **Low** = minor wording or presentation problem. Frequency is
-the number of participants affected out of those who attempted the task.
+**T1 - Sign-in and role recognition.** The sign-in page displayed NocoBase without the Clicker application name. After sign-in, the heading, tab title and entry button identified the entry role. The missing application identity is an observed interface condition; uncertainty about being on the correct website is a possible effect, not a recorded statement from P1. Recorded ease: 5/7.
 
-## Synthesis after three sessions
+**T2 - Event discovery, saving and reload.** The visible event list contained 11 similarly named options; the assigned event required typing or scrolling to find. Typing P1 Arrival narrowed the list to one option, but the control did not advertise this capability. Initially the count showed 2 inside while Recent entries showed No counts recorded yet. After recording, the count changed to 3 in approximately one second, with a green saved banner and a new row. The saved banner showed 11:11:24 PM. Reload cleared the event and station selections; the panel showed -- until the event was selected again, when the saved count of 3 remained. The juxtaposition of initial occupancy and empty history is a potential source of confusion; the notes do not record a direct statement from P1 about that condition. Recorded ease: 4/7.
 
-For each task, calculate unassisted completions / attempts, median time and
-median ease rating. Describe the issue, supporting observations, impact and
-proposed change. Keep observations separate from explanations you infer.
-Include all findings, then rank the most pressing for the team discussion.
+**T3 - Final departure.** Recording the exit reduced inside to 0. The exit button became disabled, and a yellow empty-event warning appeared alongside the green saved confirmation. The leading minus sign in the button label and simultaneous alerts were identified for design review. The notes do not establish that P1 misread the sign or misunderstood either alert. Recorded ease: 5/7.
 
-Completion gate for Deliverable 2: at least three non-class participants,
-documented sessions covering all six tasks, an actual Observations section,
-and a readable final uploaded plan. Scheduling or automated runs alone do not
-complete this deliverable.
+**T4 - Capacity limit.** Before entry, the interface displayed the grammatically incorrect 1 spaces remaining at the venue. Recording one arrival changed occupancy to 5/5; the button became disabled and a capacity warning appeared. Ease: 6/7, explicitly labeled an estimate in the notes.
+
+**T5 - Manager report.** The initial screen showed three filters, three summary totals of 1,151/422/729 and a long table. The Venue selector did not accept typed search and required scrolling through approximately 24 venues. The unmatched-event message was clear in the notes. Recorded ease: 4/7.
+
+**T6 - Historical terminology and count meaning.** The task used completed, while the filter used Closed and the badge used closed. The re-entry explanation appeared in small grey footer text away from the summary cards. Terminology inconsistency and explanation placement are observed conditions; hesitation or failure to notice the text was not explicitly documented for P1. Recorded ease: 4/7.
+
+**Recorded improvement priorities:** preserve event/station selection after refresh; improve event discovery through a search hint or reduced irrelevant choices; use consistent event-status terminology.
+
+## Observations: P2
+
+**T1 - Role and account identity.** The notes describe immediate recognition of the role page and a request for a visible signed-in account name. The header showed a person icon without an account name. Recorded ease: 6/7.
+
+**T2 - Counting and shift continuity.** The large counting control was described as quick and practical. Automatic refresh and the manual refresh control supported confidence in the count. The entry-save timestamp was 11:15:53 PM, and the count remained 3 after reload. Reload cleared the event and station, requiring reselection. Recent entries displayed a time without a date. Recorded ease: 5/7.
+
+**T3 - Zero limit and mistake recovery.** After the last exit, pressing the disabled control did not change the count from 0. The notes identified the absence of an undo/correction flow for an accidental count. Recording an opposite-direction action was mentioned as a possible workaround but was not validated; it should not be presented as a supported correction procedure. Recorded ease: 6/7.
+
+**T4 - Capacity and advance warning.** The capacity block prevented a sixth entry even after another press. P2's recorded improvement list requested a more prominent warning before the final space is filled. Recorded ease: 6/7.
+
+**T5 - Venue discovery.** The notes describe the three filters as manageable but the venue-list scrolling as slow. Ease: 5/7, explicitly labeled an estimate.
+
+**T6 - Re-entry interpretation.** The notes document understanding that a guest leaving and returning produces another entry, so entry totals do not identify the number of distinct guests. Recorded ease: 6/7.
+
+**Recorded improvement priorities:** provide a way to correct the last accidental count; retain station selection across refresh; strengthen the near-capacity warning.
+
+## Observations: P3
+
+**T1 - Role recognition.** The entry role was identified clearly. Ease: 6/7, explicitly labeled an estimate.
+
+**T2 - Save feedback and timestamps.** The arrival produced the expected saved result. The 11:19:06 PM saved banner matched the Recent entries time. The notes also compared P1's record time of 11:11:23 with the 11:11:24 confirmation. A one-second difference between record and confirmation timestamps is not, by itself, evidence of an incorrect or duplicated count. Recorded ease: 6/7.
+
+**T3 - Zero limit.** The final-departure result matched the expected count and the messages were described as precise. Recorded ease: 6/7.
+
+**T4 - Capacity limit.** The capacity result matched expectations and the messages were described as precise. Recorded ease: 6/7.
+
+**T5 - Filter carry-over.** The filtered row and summaries matched at 3/0/3. When returning to an active-event report after history-style filtering, Closed remained selected. Choosing the P3 venue therefore showed no rows and 0/0/0 until the status was changed to Active. The screen did not make the leftover filter prominent or provide a Clear filters control. This was an additional navigation/recovery observation; it does not negate the successful final filtered totals. Recorded ease: 5/7.
+
+**T6 - History and reporting needs.** Harbor Center with all statuses selected showed two events with totals of 832 entries, 420 exits and 412 inside. Selecting Closed and Harbor Workshop produced 420/420/0. P3 correctly interpreted entries as including re-entry and found the footer explanation. The recorded requests were to move the distinction next to Total entries, add date-range filtering and provide export. Recorded ease: 6/7.
+
+**Recorded improvement priorities:** label entries versus unique people beside the summary card; provide Clear filters and highlight active filters; make Venue searchable.
+
+## Ease values retained from the notes
+
+| Task | P1 | P2 | P3 |
+| --- | --- | --- | --- |
+| T1 | 5 | 6 | 6 - estimate |
+| T2 | 4 | 5 | 6 |
+| T3 | 5 | 6 | 6 |
+| T4 | 6 - estimate | 6 | 6 |
+| T5 | 4 | 5 - estimate | 5 |
+| T6 | 4 | 6 | 6 |
+
+These values are reproduced from the compiled notes. The three marked estimates are not presented as participant-reported measurements. No average or median ease score is calculated because the notes mix recorded scores and estimates and do not establish the provenance of every score. Task durations and assistance classifications are not reconstructed.
+
+## Analysis and proposed improvements
+
+Functional checks were successful across the records, while the main usability costs involved recovering context after refresh and understanding the scope of a report. P1's lowest documented scores were associated with event discovery, manager filtering and historical interpretation. P2's feedback emphasized operational speed, station continuity and correcting mistakes. P3's feedback emphasized filter visibility and interpretation of reporting totals. These are small-sample qualitative findings, not population estimates.
+
+The following ten items preserve the source's consolidated findings. Priorities are proposed by the researcher for discussion; they are not yet recorded team decisions. References identify the notes that support each item, not a measured affected-participant rate.
+
+| ID / proposed priority | Finding and supporting notes | Recommended change / acceptance check |
+| --- | --- | --- |
+| F01 / Medium | Refresh clears attendant event/station choices (P1-T2, P2-T2). | Restore valid selections for the same account/role, while revalidating permissions and active status. Reload should retain the saved count and usable shift context. |
+| F02 / Medium | Manager Venue cannot be searched by typing; scrolling is required (P1-T5, P2-T5, P3 priorities). | Add case-insensitive venue-name search, keyboard selection and clear no-results feedback. |
+| F03 / Low | The interface uses 1 spaces remaining (P1-T4). | Use singular for one and plural for zero or multiple spaces; check 0, 1 and 2. |
+| F04 / Low | Task and interface terminology differ: completed, Closed and closed (P1-T6). | Align the task wording and interface terminology; consider Closed (completed) where clarification is useful. Validate comprehension in a follow-up session. |
+| F05 / Medium | Entry-versus-unique-person explanation is distant from totals (P1-T6, P3-T6). | Put a concise definition beside Total entries. Confirm a new user can explain re-entry without searching the footer. |
+| F06 / Medium | A retained Closed filter hides an active event and produces zero summaries without a clear recovery action (P3-T5). | Highlight active filters and add Clear filters; resetting must restore rows and matching totals. |
+| F07 / Medium | Similar event names and no search hint make event discovery harder (P1-T2). | Advertise searchable event selection and distinguish events clearly. Separate development/test clutter from realistic participant data. |
+| F08 / Medium | Initial occupancy appears beside an empty Recent entries list (P1-T2). | Explain the initial count or provide consistent demonstration history. The improvement is clarity; the notes do not establish lost records. |
+| F09 / High | No dedicated correction flow for accidental counts (P2-T3 and priorities). | Define an authorized, auditable correction process with a reason, linked original operation and consistent event/venue totals. Preserve the original attendance record. |
+| F10 / Medium | Application identity is absent at sign-in; the signed-in account is not named in the header (P1-T1, P2-T1). | Identify Clicker at sign-in and show the active account/role. These may be split into two focused issues if selected by the team. |
+
+F09 is proposed first because an accidental count affects data accuracy even though the notes do not document an actual miscount. F01, F02 and F06 are useful next improvements because they directly address repeated selection or report-recovery work. The low-priority wording fix can be completed cheaply. This ordering is an analyst recommendation, not a recorded vote.
+
+## Additional feedback and follow-up checks
+
+- P2 requested a stronger near-capacity indication before the venue becomes full (T4).
+- P2's notes identified missing dates in Recent entries (T2). Add date/time context where records can span days.
+- P3 requested date-range filtering and export (T6). Treat these as reporting feature requests, with requirements and acceptance criteria to be agreed.
+- P1's notes identified the leading minus sign and simultaneous saved/empty alerts for review (T3). No observed misinterpretation is established; validate before describing these as confirmed comprehension failures.
+- P3 noted a one-second difference between record and confirmation timestamps in P1's run (T2). Clarify timestamp meaning if needed; no data-integrity failure was demonstrated.
+- The reported event/venue list sizes and similar names reflect this test installation. Generalize to discoverability and realistic test-data design rather than claiming all installations have those exact lists.
+
+## Team-discussion handoff
+
+Bring the session observations, proposed priorities and teammates' findings to the transcribed Teams discussion. Agree on 8-10 items, merge duplicates, record the reasons for selection and create focused GitHub issues using the instructor-linked guidance. Link each issue to the relevant participant/task notes and observable acceptance criteria.
+
+The team-selected list, meeting transcript reference and final GitHub issue links are not contained in the supplied session PDF. They remain separate Deliverable 3 evidence. Candidate findings in this report are ready for that discussion and are not described as team-approved issues.
