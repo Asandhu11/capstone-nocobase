@@ -12,19 +12,17 @@
 
 The three session records report the expected functional results for the six tasks: staff sign-in, recording an entry, recording an exit, enforcing capacity, filtering reports and reading historical totals. The sessions also identified improvements to selection persistence, search, filtering, count interpretation and recovery from mistakes.
 
-Correct totals do not by themselves establish an easy or independent experience. Assistance levels and task durations were not recorded in the compiled notes, so this report does not calculate an unassisted-completion rate or reconstruct task timings. Estimated ease values remain explicitly marked. Interpretations are separated from observed behavior and recorded feedback.
+Correct totals do not by themselves establish an easy or independent experience. Assistance levels and task durations were not recorded in the compiled notes, so this report does not calculate an unassisted-completion rate or reconstruct task timings. Interpretations are separated from observed behavior and recorded feedback.
 
 ## Participants and method
 
 The study plan called for at least three participants outside the class with varied experience. The session notes describe the following participants:
 
-| Participant | Experience described in the notes | Recorded entry-save timestamp |
-| --- | --- | --- |
-| P1 | Basic phone and web use; little dashboard experience; first-time volunteer profile | 11:11:24 PM |
-| P2 | Front-desk, check-in, retail and event experience | 11:15:53 PM |
-| P3 | Attendance coordination, spreadsheets and reporting | 11:19:06 PM |
-
-These are application save timestamps from T2, not session start times or durations. They are reproduced as documented; the notes do not separately record their timezone. Exact participant names, recruitment confirmations, browser version and viewport were not included in the compiled notes.
+| Participant | Experience described in the notes |
+| --- | --- |
+| P1 | Basic phone and web use; little dashboard experience; first-time volunteer profile |
+| P2 | Front-desk, check-in, retail and event experience |
+| P3 | Attendance coordination, spreadsheets and reporting |
 
 The planned environment was the fictional-data Clicker installation at http://localhost:13004. Each participant had separate Arrival, Departure and Capacity scenarios. All three attempted the same tasks. Entry, exit and manager demo accounts were used as appropriate.
 
@@ -58,11 +56,11 @@ The following expands the source's repeated "same" entries into explicit outcome
 
 **T1 - Sign-in and role recognition.** The sign-in page displayed NocoBase without the Clicker application name. After sign-in, the heading, tab title and entry button identified the entry role. The missing application identity is an observed interface condition; uncertainty about being on the correct website is a possible effect, not a recorded statement from P1. Recorded ease: 5/7.
 
-**T2 - Event discovery, saving and reload.** The visible event list contained 11 similarly named options; the assigned event required typing or scrolling to find. Typing P1 Arrival narrowed the list to one option, but the control did not advertise this capability. Initially the count showed 2 inside while Recent entries showed No counts recorded yet. After recording, the count changed to 3 in approximately one second, with a green saved banner and a new row. The saved banner showed 11:11:24 PM. Reload cleared the event and station selections; the panel showed -- until the event was selected again, when the saved count of 3 remained. The juxtaposition of initial occupancy and empty history is a potential source of confusion; the notes do not record a direct statement from P1 about that condition. Recorded ease: 4/7.
+**T2 - Event discovery, saving and reload.** The visible event list contained 11 similarly named options; the assigned event required typing or scrolling to find. Typing P1 Arrival narrowed the list to one option, but the control did not advertise this capability. Initially the count showed 2 inside while Recent entries showed No counts recorded yet. After recording, the count changed to 3, with a green saved banner and a new row. Reload cleared the event and station selections; the panel showed -- until the event was selected again, when the saved count of 3 remained. The juxtaposition of initial occupancy and empty history is a potential source of confusion; the notes do not record a direct statement from P1 about that condition. Recorded ease: 4/7.
 
 **T3 - Final departure.** Recording the exit reduced inside to 0. The exit button became disabled, and a yellow empty-event warning appeared alongside the green saved confirmation. The leading minus sign in the button label and simultaneous alerts were identified for design review. The notes do not establish that P1 misread the sign or misunderstood either alert. Recorded ease: 5/7.
 
-**T4 - Capacity limit.** Before entry, the interface displayed the grammatically incorrect 1 spaces remaining at the venue. Recording one arrival changed occupancy to 5/5; the button became disabled and a capacity warning appeared. Ease: 6/7, explicitly labeled an estimate in the notes.
+**T4 - Capacity limit.** Before entry, the interface displayed the grammatically incorrect 1 spaces remaining at the venue. Recording one arrival changed occupancy to 5/5; the button became disabled and a capacity warning appeared.
 
 **T5 - Manager report.** The initial screen showed three filters, three summary totals of 1,151/422/729 and a long table. The Venue selector did not accept typed search and required scrolling through approximately 24 venues. The unmatched-event message was clear in the notes. Recorded ease: 4/7.
 
@@ -74,13 +72,13 @@ The following expands the source's repeated "same" entries into explicit outcome
 
 **T1 - Role and account identity.** The notes describe immediate recognition of the role page and a request for a visible signed-in account name. The header showed a person icon without an account name. Recorded ease: 6/7.
 
-**T2 - Counting and shift continuity.** The large counting control was described as quick and practical. Automatic refresh and the manual refresh control supported confidence in the count. The entry-save timestamp was 11:15:53 PM, and the count remained 3 after reload. Reload cleared the event and station, requiring reselection. Recent entries displayed a time without a date. Recorded ease: 5/7.
+**T2 - Counting and shift continuity.** The large counting control was described as quick and practical. Automatic refresh and the manual refresh control supported confidence in the count. The count remained 3 after reload. Reload cleared the event and station, requiring reselection. Recorded ease: 5/7.
 
 **T3 - Zero limit and mistake recovery.** After the last exit, pressing the disabled control did not change the count from 0. The notes identified the absence of an undo/correction flow for an accidental count. Recording an opposite-direction action was mentioned as a possible workaround but was not validated; it should not be presented as a supported correction procedure. Recorded ease: 6/7.
 
 **T4 - Capacity and advance warning.** The capacity block prevented a sixth entry even after another press. P2's recorded improvement list requested a more prominent warning before the final space is filled. Recorded ease: 6/7.
 
-**T5 - Venue discovery.** The notes describe the three filters as manageable but the venue-list scrolling as slow. Ease: 5/7, explicitly labeled an estimate.
+**T5 - Venue discovery.** The notes describe the three filters as manageable but the venue-list scrolling as slow.
 
 **T6 - Re-entry interpretation.** The notes document understanding that a guest leaving and returning produces another entry, so entry totals do not identify the number of distinct guests. Recorded ease: 6/7.
 
@@ -88,9 +86,9 @@ The following expands the source's repeated "same" entries into explicit outcome
 
 ## Observations: P3
 
-**T1 - Role recognition.** The entry role was identified clearly. Ease: 6/7, explicitly labeled an estimate.
+**T1 - Role recognition.** The entry role was identified clearly.
 
-**T2 - Save feedback and timestamps.** The arrival produced the expected saved result. The 11:19:06 PM saved banner matched the Recent entries time. The notes also compared P1's record time of 11:11:23 with the 11:11:24 confirmation. A one-second difference between record and confirmation timestamps is not, by itself, evidence of an incorrect or duplicated count. Recorded ease: 6/7.
+**T2 - Save feedback and persistence.** The arrival produced the expected saved result. The saved confirmation and the new Recent entries row provided feedback that the entry had been recorded. The count remained 3 after reload. Recorded ease: 6/7.
 
 **T3 - Zero limit.** The final-departure result matched the expected count and the messages were described as precise. Recorded ease: 6/7.
 
@@ -106,18 +104,18 @@ The following expands the source's repeated "same" entries into explicit outcome
 
 | Task | P1 | P2 | P3 |
 | --- | --- | --- | --- |
-| T1 | 5 | 6 | 6 - estimate |
+| T1 | 5 | 6 | - |
 | T2 | 4 | 5 | 6 |
 | T3 | 5 | 6 | 6 |
-| T4 | 6 - estimate | 6 | 6 |
-| T5 | 4 | 5 - estimate | 5 |
+| T4 | - | 6 | 6 |
+| T5 | 4 | - | 5 |
 | T6 | 4 | 6 | 6 |
 
-These values are reproduced from the compiled notes. The three marked estimates are not presented as participant-reported measurements. No average or median ease score is calculated because the notes mix recorded scores and estimates and do not establish the provenance of every score. Task durations and assistance classifications are not reconstructed.
+The table retains documented ease scores on the 1-7 scale. A dash indicates that no participant-reported score is documented for that task. No average or median ease score is calculated. Task durations and assistance classifications are not reconstructed.
 
 ## Analysis and proposed improvements
 
-Functional checks were successful across the records, while the main usability costs involved recovering context after refresh and understanding the scope of a report. P1's lowest documented scores were associated with event discovery, manager filtering and historical interpretation. P2's feedback emphasized operational speed, station continuity and correcting mistakes. P3's feedback emphasized filter visibility and interpretation of reporting totals. These are small-sample qualitative findings, not population estimates.
+Functional checks were successful across the records, while the main usability costs involved recovering context after refresh and understanding the scope of a report. P1's lowest documented scores were associated with event discovery, manager filtering and historical interpretation. P2's feedback emphasized operational speed, station continuity and correcting mistakes. P3's feedback emphasized filter visibility and interpretation of reporting totals. These are small-sample qualitative findings.
 
 The following ten items preserve the source's consolidated findings. Priorities are proposed by the researcher for discussion; they are not yet recorded team decisions. References identify the notes that support each item, not a measured affected-participant rate.
 
@@ -139,10 +137,8 @@ F09 is proposed first because an accidental count affects data accuracy even tho
 ## Additional feedback and follow-up checks
 
 - P2 requested a stronger near-capacity indication before the venue becomes full (T4).
-- P2's notes identified missing dates in Recent entries (T2). Add date/time context where records can span days.
 - P3 requested date-range filtering and export (T6). Treat these as reporting feature requests, with requirements and acceptance criteria to be agreed.
 - P1's notes identified the leading minus sign and simultaneous saved/empty alerts for review (T3). No observed misinterpretation is established; validate before describing these as confirmed comprehension failures.
-- P3 noted a one-second difference between record and confirmation timestamps in P1's run (T2). Clarify timestamp meaning if needed; no data-integrity failure was demonstrated.
 - The reported event/venue list sizes and similar names reflect this test installation. Generalize to discoverability and realistic test-data design rather than claiming all installations have those exact lists.
 
 ## Team-discussion handoff
