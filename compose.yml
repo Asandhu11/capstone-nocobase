@@ -15,7 +15,7 @@ services:
       timeout: 5s
       retries: 60
     volumes:
-      - ./storage/db/postgres:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
       - ./scripts/prepare-postgres.sh:/prepare-postgres.sh:ro
       - ./seed/prototype.sql:/docker-entrypoint-initdb.d/01-prototype.sql:ro
 
@@ -67,4 +67,48 @@ services:
       - ./storage:/app/nocobase/storage
       - ./seed/assets/logo-sheoaa.png:/app/nocobase/storage/uploads/logo-sheoaa.png:ro
     ports:
-      - "127.0.0.1:${NOCOBASE_PORT:-13003}:80"
+      - "0.0.0.0:${NOCOBASE_PORT:-13003}:80"
+  
+  # Sprint 4 end-2-end Selenium testing that starts only when you request the "e2e-test" profile
+  selenium:
+    profiles:
+      - e2e-test
+    image: selenium/standalone-chrome:latest
+    shm_size: "2gb"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      SE_SCREEN_WIDTH: "1440"
+      SE_SCREEN_HEIGHT: "1000"
+      SE_NODE_MAX_SESSIONS: "2"
+      SE_NODE_OVERRIDE_MAX_SESSIONS: "true"
+      SE_VNC_NO_PASSWORD: "1"
+    ports:
+      - "127.0.0.1:4444:4444"
+      - "127.0.0.1:5900:5900"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - "wget -qO- http://localhost:4444/status | grep -q '\"ready\": *true'"
+      interval: 5s
+      timeout: 10s
+      start_period: 60s
+      retries: 60
+    
+  e2e-test:
+    profiles: [e2e-test]
+    build: ./e2e-test
+    depends_on:
+      app:
+        condition: service_healthy
+      selenium:
+        condition: service_healthy
+    environment:
+      BASE_URL: http://host.docker.internal:13003
+      SELLENIUM_URL: http://selenium:4444/wd/hub
+      ARTIFACT_DIR: /artifacts
+    volumes:
+      - ./e2e-test:/tests:ro
+      - ./e2e-test/artifacts:/artifacts
+volumes:
+  postgres_data:

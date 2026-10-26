@@ -1,12 +1,43 @@
-# Clicker Sprint 3
+# Clicker Sprint 4
 
-**Developer:** Ayoola Morakinyo
-
-**Branch:** `sprint3-Ayoola`
+**Developer:** George Moore
+**Branch:** `sprint4-George`
 
 **Base:** team `main` at `7f7bd2b74c7a75226137a9ac9c072961f2807956`
 
-Sprint 3 Deliverable 1 adds separate NocoBase screens for entryway attendants,
+Sprint 4 validates the role-based attendance workflow end to end. It focuses on
+entry and exit actions for guest traffic, live capacity updates, manager review of
+active and historical events, and role restrictions so that only the correct user
+accesses each screen.
+
+### Sprint 4 Selenium coverage
+
+The Sprint 4 regression suite should exercise the live UI through the browser and
+confirm the critical attendance flows for the three operational roles used in the
+prototype: Entry attendant, Exit attendant, and Manager.
+
+To run the Selenium tests from the project root:
+
+```bash
+docker compose up -d --wait --wait-timeout 600
+python -m pip install pytest selenium
+BASE_URL=http://localhost:13003 python -m pytest -q e2e-test/test_sprint4_roles.py
+```
+
+If the project is using a different test file name, run the equivalent pytest
+command for that file and keep the same base URL.
+
+| Task | Python test function(s) | User |
+| --- | --- | --- |
+| Allow a guest to enter through North Gate for the correct event | `test_entry_attendant_north_gate_entry` | Entry attendant |
+| Allow a guest to enter through East Lobby for the correct event | `test_entry_attendant_east_lobby_entry` | Entry attendant |
+| Allow a guest to exit through South Exit for the correct event | `test_exit_attendant_south_exit` | Exit attendant |
+| Allow a guest to exit through East Lobby for the correct event | `test_exit_attendant_east_lobby_exit` | Exit attendant |
+| Check current capacity and verify it changes after each entry or exit | `test_capacity_updates_after_entry_exit` | Entry attendant / Exit attendant |
+| Allow manager to view event data and summaries | `test_manager_views_event_summary` | Manager |
+| Ensure each screen is only visible to its assigned role | `test_role_based_screen_visibility` | Entry attendant / Exit attendant / Manager |
+
+Sprint 3 Deliverable 1 (developed by Ayoola Morakinyo) adds separate NocoBase screens for entryway attendants,
 exit attendants, and attendance managers. The original Sprint 2 collections and
 administrator pages remain available.
 
