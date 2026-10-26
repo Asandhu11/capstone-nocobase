@@ -121,18 +121,17 @@ The following ten items preserve the source's consolidated findings. Priorities 
 
 | ID / proposed priority | Finding and supporting notes | Recommended change / acceptance check |
 | --- | --- | --- |
-| F01 / Medium | Refresh clears attendant event/station choices (P1-T2, P2-T2). | Restore valid selections for the same account/role, while revalidating permissions and active status. Reload should retain the saved count and usable shift context. |
-| F02 / Medium | Manager Venue cannot be searched by typing; scrolling is required (P1-T5, P2-T5, P3 priorities). | Add case-insensitive venue-name search, keyboard selection and clear no-results feedback. |
-| F03 / Low | The interface uses 1 spaces remaining (P1-T4). | Use singular for one and plural for zero or multiple spaces; check 0, 1 and 2. |
-| F04 / Low | Task and interface terminology differ: completed, Closed and closed (P1-T6). | Align the task wording and interface terminology; consider Closed (completed) where clarification is useful. Validate comprehension in a follow-up session. |
-| F05 / Medium | Entry-versus-unique-person explanation is distant from totals (P1-T6, P3-T6). | Put a concise definition beside Total entries. Confirm a new user can explain re-entry without searching the footer. |
-| F06 / Medium | A retained Closed filter hides an active event and produces zero summaries without a clear recovery action (P3-T5). | Highlight active filters and add Clear filters; resetting must restore rows and matching totals. |
-| F07 / Medium | Similar event names and no search hint make event discovery harder (P1-T2). | Advertise searchable event selection and distinguish events clearly. Separate development/test clutter from realistic participant data. |
-| F08 / Medium | Initial occupancy appears beside an empty Recent entries list (P1-T2). | Explain the initial count or provide consistent demonstration history. The improvement is clarity; the notes do not establish lost records. |
-| F09 / High | No dedicated correction flow for accidental counts (P2-T3 and priorities). | Define an authorized, auditable correction process with a reason, linked original operation and consistent event/venue totals. Preserve the original attendance record. |
+| F1 / Medium | Refresh clears attendant event/station choices (P1-T2, P2-T2). | Restore valid selections for the same account/role, while revalidating permissions and active status. Reload should retain the saved count and usable shift context. |
+| F2 / Medium | Manager Venue cannot be searched by typing; scrolling is required (P1-T5, P2-T5, P3 priorities). | Add case-insensitive venue-name search, keyboard selection and clear no-results feedback. |
+| F3 / Low | The interface uses 1 spaces remaining (P1-T4). | Use singular for one and plural for zero or multiple spaces; check 0, 1 and 2. |
+| F4 / Low | Task and interface terminology differ: completed, Closed and closed (P1-T6). | Align the task wording and interface terminology; consider Closed (completed) where clarification is useful. Validate comprehension in a follow-up session. |
+| F5 / Medium | Entry-versus-unique-person explanation is distant from totals (P1-T6, P3-T6). | Put a concise definition beside Total entries. Confirm a new user can explain re-entry without searching the footer. |
+| F6 / Medium | A retained Closed filter hides an active event and produces zero summaries without a clear recovery action (P3-T5). | Highlight active filters and add Clear filters; resetting must restore rows and matching totals. |
+| F7 / Medium | Similar event names and no search hint make event discovery harder (P1-T2). | Advertise searchable event selection and distinguish events clearly. Separate development/test clutter from realistic participant data. |
+| F8 / Medium | Initial occupancy appears beside an empty Recent entries list (P1-T2). | Explain the initial count or provide consistent demonstration history. The improvement is clarity; the notes do not establish lost records. |
+| F9 / High | No dedicated correction flow for accidental counts (P2-T3 and priorities). | Define an authorized, auditable correction process with a reason, linked original operation and consistent event/venue totals. Preserve the original attendance record. |
 | F10 / Medium | Application identity is absent at sign-in; the signed-in account is not named in the header (P1-T1, P2-T1). | Identify Clicker at sign-in and show the active account/role. These may be split into two focused issues if selected by the team. |
 
-F09 is proposed first because an accidental count affects data accuracy even though the notes do not document an actual miscount. F01, F02 and F06 are useful next improvements because they directly address repeated selection or report-recovery work. The low-priority wording fix can be completed cheaply. This ordering is an analyst recommendation, not a recorded vote.
 
 ## Additional feedback and follow-up checks
 
@@ -140,9 +139,3 @@ F09 is proposed first because an accidental count affects data accuracy even tho
 - P3 requested date-range filtering and export (T6). Treat these as reporting feature requests, with requirements and acceptance criteria to be agreed.
 - P1's notes identified the leading minus sign and simultaneous saved/empty alerts for review (T3). No observed misinterpretation is established; validate before describing these as confirmed comprehension failures.
 - The reported event/venue list sizes and similar names reflect this test installation. Generalize to discoverability and realistic test-data design rather than claiming all installations have those exact lists.
-
-## Team-discussion handoff
-
-Bring the session observations, proposed priorities and teammates' findings to the transcribed Teams discussion. Agree on 8-10 items, merge duplicates, record the reasons for selection and create focused GitHub issues using the instructor-linked guidance. Link each issue to the relevant participant/task notes and observable acceptance criteria.
-
-The team-selected list, meeting transcript reference and final GitHub issue links are not contained in the supplied session PDF. They remain separate Deliverable 3 evidence. Candidate findings in this report are ready for that discussion and are not described as team-approved issues.
