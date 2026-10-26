@@ -1,6 +1,6 @@
 # Clicker Usability Test Plan
 
-**Author:** Amninder Sandhu  |  **Sprint:** 4, Deliverable 1  |  **System under test:** the team's Clicker website (`main`, Sprint 3 screens)
+**Author:** Amninder Sandhu  |  **Sprint:** 4, Deliverables 1 and 2  |  **System under test:** the team's Clicker website (`main`, Sprint 3 screens)
 
 ## 1. What we are testing and why
 
@@ -74,3 +74,61 @@ The automated tests in `e2e/` follow the same six tasks through a real browser, 
 | 6 | `test_task6_attendants_only_see_their_own_screen` and `test_task6_manager_screen_is_read_only` | Attendants cannot see other roles' screens or buttons; the manager screen has no record, edit, or delete controls |
 
 Not automated: reading and judging the wording, layout, speed, or the feelings of a real person. Those come from the human sessions.
+
+## 8. Observations
+
+I ran the tasks in this plan with three people outside our class, one session per person. Each tester attempted the tasks while I watched and took notes. This section records what I saw.
+
+### Participants
+
+| ID | Tester | Background / comfort with technology |
+| --- | --- | --- |
+| P1 | My brother | No technical background |
+| P2 | My sister | No technical background |
+| P3 | My best friend | Has a technical background |
+
+Having two non-technical testers and one technical tester gave a view of how the system works for everyday users, such as event volunteers, as well as for someone more comfortable with software.
+
+### Results by task
+
+The "What I observed" column summarizes what happened across the three sessions.
+
+| Task | Target | What I observed |
+| --- | --- | --- |
+| 1. Record an entry | 90% finish alone; median ≤ 30 s | Worked well: testers picked the event, picked the station, and pressed one large button. A green "saved" message appeared and the count updated right away. |
+| 2. Record an exit | 90% finish alone; median ≤ 30 s | Same flow as Task 1. The blue entry button and brown exit button were easy to tell apart. |
+| 3. Watch the live count | 80% finish alone; median ≤ 90 s | The count updated within a few seconds of a new entry. However, "Currently inside" sits below the fold, while "Total entries" (1,108) is the first number on the page and looks like the main figure. |
+| 4. Find running workshops | 90% finish alone; median ≤ 90 s | Both search and filter worked. The only workshop in the data was closed, so there was no running workshop to find. |
+| 5. Sign in with the card | 80% finish alone | The wrong-password error was clear but gave no next step. The "Create an account" link was a tempting wrong turn. |
+| 6. Restricted actions | 80% recognize the restriction | No edit controls appeared for accounts that should not have them. However, the "Recent exits" list could be counted and mistaken for a daily total. |
+
+### Issues found
+
+Severity: High = blocks the task or gives wrong information; Medium = causes confusion or errors but the task can be finished; Low = cosmetic.
+
+| # | Issue | Severity | Tasks |
+| --- | --- | --- | --- |
+| 1 | Switching accounts leaves you on the previous person's page: a 404 or blank page, repeated permission pop-ups, and no way to sign out without reloading. | High | 2, 3, 4, 6 |
+| 2 | "Currently inside" is below the fold, and "Total entries" looks like the main number. | Medium | 3 |
+| 3 | A wrong password gives no next step, and "Create an account" lets strangers sign up. | Medium | 5 |
+| 4 | Recent lists show times without dates, so the order looks wrong. | Medium | 1, 2 |
+| 5 | The disabled "Record one entry" button does not say a station must be chosen first. | Medium | 1, 2 |
+| 6 | There is no undo, so a double tap counts two people. | Medium | 1, 2 |
+| 7 | Polish: the app says "NocoBase," sign-out is hidden, event dates are wrong, and the table is cut off on first load. | Low | All |
+
+### Recommended fixes
+
+1. Fix account switching: stop the refresh timer on sign-out and send each account to its own home page.
+2. Move "Currently inside" to the top of the manager page.
+3. Add a next step to the wrong-password message and hide "Create an account."
+4. Show dates (or "Today" / "Yesterday") in recent lists.
+5. Show "Choose a station first" on the disabled button, and auto-select the station when there is only one.
+6. Add a short undo after recording an entry or exit.
+7. Polish: rename the app to Clicker, label sign-out, fix the event dates, and fix the table layout.
+
+### Limitations
+
+- Only three testers, all people I know personally, so this is early feedback and may be less critical than strangers would be. It is also fewer than the five per user group that section 2 calls for.
+- Per-tester completion, task times, ease ratings, end-of-session ratings and quotes were not recorded, so the success targets cannot be checked yet. I will record these for every tester in the next round.
+- The account-switching bug probably affected Tasks 2, 3, 4 and 6, which may have made those tasks look harder than they are.
+- Task 4 could not be fully tested because the only workshop in the data was closed.
