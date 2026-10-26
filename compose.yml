@@ -15,7 +15,7 @@ services:
       timeout: 5s
       retries: 60
     volumes:
-      - ./storage/db/postgres:/var/lib/postgresql/data
+      - ${CLICKER_STORAGE:-./storage}/db/postgres:/var/lib/postgresql/data
       - ./scripts/prepare-postgres.sh:/prepare-postgres.sh:ro
       - ./seed/prototype.sql:/docker-entrypoint-initdb.d/01-prototype.sql:ro
 
@@ -58,13 +58,49 @@ services:
         - CMD
         - node
         - -e
-        - "require('http').get('http://127.0.0.1/api/pm:listEnabled',r=>{r.resume();process.exit(r.statusCode===200?0:1)}).on('error',()=>process.exit(1))"
+        - "require('http').get('http://127.0.0.1/api/pm:listEnabled',r=>{let b='';r.on('data',c=>b+=c);r.on('end',()=>{try{process.exit(r.statusCode===200&&Array.isArray(JSON.parse(b).data)?0:1)}catch{process.exit(1)}})}).on('error',()=>process.exit(1))"
       interval: 10s
       timeout: 5s
       start_period: 60s
       retries: 60
     volumes:
-      - ./storage:/app/nocobase/storage
+      - ${CLICKER_STORAGE:-./storage}:/app/nocobase/storage
       - ./seed/assets/logo-sheoaa.png:/app/nocobase/storage/uploads/logo-sheoaa.png:ro
     ports:
-      - "127.0.0.1:${NOCOBASE_PORT:-13003}:80"
+      - "127.0.0.1:${NOCOBASE_PORT:-13004}:80"
+    networks:
+      default:
+        aliases: [clicker.test]
+
+  selenium:
+    image: selenium/standalone-chromium:4.51.0-20261010
+    profiles: [e2e]
+    shm_size: 2gb
+    environment:
+      SE_NODE_MAX_SESSIONS: "1"
+      SE_NODE_SESSION_TIMEOUT: "180"
+    healthcheck:
+      # A busy single-session Grid can report ready=false; it is still healthy.
+      test: ["CMD-SHELL", "curl -fsS --noproxy '*' http://127.0.0.1:4444/status | jq -e '.value.nodes | any(.availability == \"UP\")' >/dev/null"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+    # Grid and browser-control ports stay on the Compose network.
+
+  e2e:
+    build: ./tests/e2e
+    profiles: [e2e]
+    depends_on:
+      app:
+        condition: service_healthy
+      selenium:
+        condition: service_healthy
+    environment:
+      # Chromium upgrades the bare name "app" to HTTPS; use a .test alias.
+      CLICKER_TEST_URL: http://clicker.test
+      SELENIUM_REMOTE_URL: http://selenium:4444
+      E2E_ARTIFACTS: /artifacts
+    volumes:
+      - ./tests/e2e:/tests:ro
+      - ${E2E_RESULTS:-./test-results}:/artifacts
+    command: ["pytest", "-v", "--tb=short", "--junitxml=/artifacts/results.xml", "-p", "no:cacheprovider"]

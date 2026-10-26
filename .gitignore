@@ -8,3 +8,8 @@ backup.sql
 /tests/node_modules/
 __pycache__/
 /tmp/
+/test-results/
+/.test-runs/
+/dist/
+/.venv/
+.pytest_cache/
