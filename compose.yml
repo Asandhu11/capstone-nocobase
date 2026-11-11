@@ -78,7 +78,18 @@ services:
     volumes:
       - ./proxy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     ports:
-      - "127.0.0.1:${PROXY_PORT:-13005}:80"
+      - "${PROXY_BIND_IP:-0.0.0.0}:${PROXY_PORT:-13005}:80"
+
+  staff-proxy:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    volumes:
+      - ./proxy/staff-nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "${STAFF_PROXY_BIND_IP:-127.0.0.2}:${STAFF_PROXY_PORT:-13015}:80"
 
 volumes:
   postgres_data:

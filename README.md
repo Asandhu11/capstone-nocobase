@@ -1,4 +1,4 @@
-## Sprint 5: NGINX reverse proxy
+## Sprint 5: Dual NGINX proxy setup
 
 **Developer:** George Moore
 
@@ -6,16 +6,30 @@
 
 **Base:** team `main` at `7f7bd2b74c7a75226137a9ac9c072961f2807956`
 
-Sprint 5 adds a lightweight NGINX reverse proxy in front of the NocoBase app.
-The proxy accepts browser traffic and forwards it to the internal `app` service.
+Sprint 5 uses two lightweight NGINX reverse proxies in front of the NocoBase
+app: one general proxy and one dedicated admins/employees proxy bound to a
+specific host IP.
 
 ### What was added
 
 1. New Compose service: `nginx` (image `nginx:1.27-alpine`)
 2. New proxy config file: `proxy/nginx.conf`
-3. Public proxy port: `127.0.0.1:${PROXY_PORT:-13005}`
+3. Public proxy port: `${PROXY_BIND_IP:-0.0.0.0}:${PROXY_PORT:-13005}`
+4. New Compose service: `staff-proxy` (image `nginx:1.27-alpine`)
+5. Staff proxy config file: `proxy/staff-nginx.conf`
+6. Staff proxy bind target: `${STAFF_PROXY_BIND_IP:-127.0.0.2}:${STAFF_PROXY_PORT:-13015}`
 
-### Start with proxy
+### Configure admin/employee proxy access
+
+1. Create a `.env` file in the repository root (next to `compose.yml`).
+2. Set these values as needed:
+	- `PROXY_BIND_IP=0.0.0.0` and `PROXY_PORT=13005` for general proxy access
+	- `STAFF_PROXY_BIND_IP=127.0.0.2` (or your chosen host IP)
+	- `STAFF_PROXY_PORT=13015`
+3. If employees connect over LAN/WAN, set `STAFF_PROXY_BIND_IP` to the server's
+	specific LAN IP instead of loopback.
+
+### Start both proxies
 
 Run from the repository root:
 
@@ -26,6 +40,7 @@ docker compose up -d --wait --wait-timeout 600
 Open the app through the proxy:
 
 - http://localhost:13005
+- Admin/employee proxy: `http://127.0.0.2:13015`
 
 Optional: override proxy port in a `.env` file next to `compose.yml`:
 
@@ -39,9 +54,11 @@ local troubleshooting.
 ### Verify proxy is working
 
 1. `docker compose ps` shows `nginx` as running.
-2. Browsing to `http://localhost:13005` loads the NocoBase sign-in page.
-3. Request logs are visible with `docker compose logs --tail=80 nginx`.
-4. Scripted check: `python scripts/check-proxy.py` returns `OK: proxy is up`.
+2. `docker compose ps` shows `staff-proxy` as running.
+3. Browsing to `http://localhost:13005` loads the NocoBase sign-in page.
+4. Browsing to `http://127.0.0.2:13015` also loads the NocoBase sign-in page.
+5. Request logs are visible with `docker compose logs --tail=80 nginx staff-proxy`.
+6. Scripted check: `python scripts/check-proxy.py` returns `OK: proxy is up`.
 
 # Clicker Sprint 3
 
