@@ -1,0 +1,42 @@
+# Clicker proxy (Sprint 5, Ayoola): Caddy in front of NocoBase.
+# Public routes are open to everyone. Admin routes, meaning anything that changes how
+# NocoBase is configured, only answer requests that come from the intranet (10.0.2.0/24),
+# which includes work-from-home staff connected through the WireGuard VPN.
+{
+	# No Caddy admin API, no automatic HTTPS (TLS terminates at the venue firewall in the diagram).
+	admin off
+	auto_https off
+}
+
+:80 {
+	# Admin = NocoBase settings screens, plus API actions that change collections, fields,
+	# page layouts, routes, roles, users, plugins, workflows or system settings.
+	# Reads such as pm:listEnabled, roles:check and uiSchemas:getJsonSchema stay public,
+	# because every page load (including the attendant screens) needs them.
+	# (?i) and /+ close upper-case and double-slash bypasses; Caddy matches the decoded path,
+	# so %3A is treated as a colon.
+	# remote_ip is the address of the machine actually connected to Caddy. It ignores
+	# X-Forwarded-For, so a forged header cannot make an outside request look internal.
+	@blocked {
+		path_regexp (?i)^/+(v2/+)?admin/+(settings|pm|plugins)(/|$)|^/+api/+(pm|applicationPlugins|app|collections|fields|collectionCategories|dataSources|dataSourcesCollections|dbViews|uiSchemas|uiSchemaTemplates|desktopRoutes|mobileRoutes|flowModels|roles|users|systemSettings|authenticators|verifiers|workflows|flow_nodes|backupFiles|backups|apiKeys|environmentVariables|localizationTexts|customRequests|notificationChannels|mailSettings)([./][^:]*)?:(add|enable|disable|remove|upgrade|update|updateOrCreate|firstOrCreate|create|destroy|move|set|toggle|setFields|sync|refresh|restart|clearCache|insert|insertAdjacent|insertNewSchema|patch|batchPatch|saveAsTemplate|save|duplicate|revision|execute|trigger|restore|upload|publish|import|export|testConnection)(/.*)?$
+		not remote_ip 10.0.2.0/24
+	}
+
+	handle @blocked {
+		header X-Clicker-Proxy blocked
+		respond "Clicker admin functions are only available on the intranet or through the VPN." 403
+	}
+
+	handle {
+		reverse_proxy app:80 {
+			# Tell NocoBase the real client address.
+			header_up X-Real-IP {remote_host}
+			header_up X-Forwarded-For {remote_host}
+		}
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}
