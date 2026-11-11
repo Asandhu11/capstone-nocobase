@@ -1,3 +1,48 @@
+## Sprint 5: NGINX reverse proxy
+
+**Developer:** George Moore
+
+**Branch:** `sprint5-George`
+
+**Base:** team `main` at `7f7bd2b74c7a75226137a9ac9c072961f2807956`
+
+Sprint 5 adds a lightweight NGINX reverse proxy in front of the NocoBase app.
+The proxy accepts browser traffic and forwards it to the internal `app` service.
+
+### What was added
+
+1. New Compose service: `nginx` (image `nginx:1.27-alpine`)
+2. New proxy config file: `proxy/nginx.conf`
+3. Public proxy port: `127.0.0.1:${PROXY_PORT:-13005}`
+
+### Start with proxy
+
+Run from the repository root:
+
+```bash
+docker compose up -d --wait --wait-timeout 600
+```
+
+Open the app through the proxy:
+
+- http://localhost:13005
+
+Optional: override proxy port in a `.env` file next to `compose.yml`:
+
+```env
+PROXY_PORT=13006
+```
+
+The direct app port (`NOCOBASE_PORT`, default `13003`) is still available for
+local troubleshooting.
+
+### Verify proxy is working
+
+1. `docker compose ps` shows `nginx` as running.
+2. Browsing to `http://localhost:13005` loads the NocoBase sign-in page.
+3. Request logs are visible with `docker compose logs --tail=80 nginx`.
+4. Scripted check: `python scripts/check-proxy.py` returns `OK: proxy is up`.
+
 # Clicker Sprint 3
 
 **Developer:** Ayoola Morakinyo
