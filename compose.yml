@@ -1,8 +1,17 @@
+# Clicker, Sprint 5: HAProxy in front of NocoBase.
+#
+# Two Docker networks stand in for the real-world layout:
+#   internet  10.77.1.0/24  the outside world (public visitors, and the home laptop)
+#   intranet  10.77.2.0/24  the office network: NocoBase and Postgres live only here
+#   (the WireGuard tunnel between the home laptop and the gateway uses 10.77.9.0/24)
+#
+# HAProxy ("proxy") is the only service published to your computer. See README.md.
 services:
   postgres:
     image: postgres:16
     entrypoint: ["/bin/sh", "/prepare-postgres.sh"]
     restart: unless-stopped
+    networks: [intranet]
     command: postgres -c wal_level=logical
     environment:
       POSTGRES_USER: nocobase
@@ -22,6 +31,7 @@ services:
   prototype-migrations:
     image: postgres:16
     restart: "no"
+    networks: [intranet]
     depends_on:
       postgres:
         condition: service_healthy
@@ -37,6 +47,7 @@ services:
     # The exported page models were tested with this exact NocoBase image.
     image: nocobase/nocobase@sha256:df2d3e90eafa9a742163781761beba725f147d5d1ac0f722be03ff0da0cfbec1
     restart: unless-stopped
+    networks: [intranet]
     depends_on:
       prototype-migrations:
         condition: service_completed_successfully
@@ -66,5 +77,126 @@ services:
     volumes:
       - ./storage:/app/nocobase/storage
       - ./seed/assets/logo-sheoaa.png:/app/nocobase/storage/uploads/logo-sheoaa.png:ro
+    # No "ports:" here any more. NocoBase can only be reached through the proxy below.
+
+  # ---- Sprint 5: HAProxy, the VPN, and the work-from-home laptop -----------------
+
+  proxy:
+    # HAProxy. The public face (8080) is the only thing published to your computer.
+    # The admin face (8081) listens only on the intranet address 10.77.2.10.
+    image: haproxy:2.8-alpine
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    volumes:
+      - ./proxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
     ports:
-      - "127.0.0.1:${NOCOBASE_PORT:-13003}:80"
+      - "127.0.0.1:${NOCOBASE_PORT:-13003}:8080"
+    networks:
+      internet:
+        ipv4_address: 10.77.1.10
+      intranet:
+        ipv4_address: 10.77.2.10
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8080/__proxy_health"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  vpn-server:
+    # WireGuard gateway on the office intranet. It listens for the tunnel on the
+    # internet-facing address and hands tunnel traffic for port 8081 to the proxy's admin face.
+    build: ./vpn
+    image: clicker-vpn-tools:sprint5
+    restart: unless-stopped
+    cap_add: [NET_ADMIN]
+    depends_on:
+      proxy:
+        condition: service_healthy
+    command: ["sh", "/vpn/entrypoint.sh", "gateway"]
+    environment:
+      WG_CONF: /vpn/server/wg0.conf
+      WG_ADDRESS: 10.77.9.1/24
+      ADMIN_TARGET: 10.77.2.10:8081
+    volumes:
+      - ./vpn:/vpn:ro
+    networks:
+      internet:
+        ipv4_address: 10.77.1.20
+      intranet:
+        ipv4_address: 10.77.2.20
+    healthcheck:
+      test: ["CMD-SHELL", "wg show wg0 public-key"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  wfh-vpn:
+    # The work-from-home end of the tunnel. The browser below shares this container's
+    # network, so everything the browser sends to 10.77.9.x goes through the VPN.
+    build: ./vpn
+    image: clicker-vpn-tools:sprint5
+    restart: unless-stopped
+    cap_add: [NET_ADMIN]
+    depends_on:
+      vpn-server:
+        condition: service_healthy
+    command: ["sh", "/vpn/entrypoint.sh", "client"]
+    environment:
+      WG_CONF: /vpn/home/wg0.conf
+      WG_ADDRESS: 10.77.9.2/24
+    volumes:
+      - ./vpn:/vpn:ro
+      - ./scripts/verify-proxy.sh:/verify-proxy.sh:ro
+    ports:
+      # The home browser's window (it runs in this container's network): http://localhost:5800
+      - "127.0.0.1:5800:5800"
+    networks:
+      internet:
+        ipv4_address: 10.77.1.30
+    healthcheck:
+      # Any answer through the tunnel counts; a failure means the VPN is not working.
+      test: ["CMD-SHELL", "curl -s -m 3 -o /dev/null http://10.77.9.1:8081/"]
+      interval: 5s
+      timeout: 5s
+      start_period: 5s
+      retries: 20
+
+  wfh-browser:
+    # Firefox on the home laptop, shown in your own browser at http://localhost:5800.
+    image: jlesage/firefox:latest
+    restart: unless-stopped
+    shm_size: "2gb"
+    network_mode: "service:wfh-vpn"
+    depends_on:
+      wfh-vpn:
+        condition: service_healthy
+    environment:
+      FF_OPEN_URL: http://10.77.9.1:8081/
+      DISPLAY_WIDTH: "1366"
+      DISPLAY_HEIGHT: "800"
+
+  # A plain visitor on the internet network with no VPN. Used by the verify steps in README.md.
+  outsider:
+    profiles: ["verify"]
+    build: ./vpn
+    image: clicker-vpn-tools:sprint5
+    restart: "no"
+    depends_on:
+      proxy:
+        condition: service_healthy
+    command: ["sh", "/verify-proxy.sh", "outside"]
+    volumes:
+      - ./scripts/verify-proxy.sh:/verify-proxy.sh:ro
+    networks: [internet]
+
+networks:
+  internet:
+    ipam:
+      config:
+        - subnet: 10.77.1.0/24
+  intranet:
+    ipam:
+      config:
+        - subnet: 10.77.2.0/24

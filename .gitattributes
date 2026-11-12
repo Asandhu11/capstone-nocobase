@@ -5,3 +5,9 @@
 # pg_dump COPY rows use trailing tabs to represent empty final column values.
 seed/prototype.sql -whitespace
 *.pdf binary
+
+# Config files that are mounted into containers must also keep Unix line endings.
+*.cfg text eol=lf
+*.conf text eol=lf
+Dockerfile text eol=lf
+compose.yml text eol=lf
